@@ -49,7 +49,7 @@ a {
 	<h1>OSM Berlin Transportation Overview</h1>
 	<p>All relations with (type=route or type=route_master) and network=VBB and (operator=BVG or operator=S-Bahn Berlin GmbH).</p>
 	<p>For relations that cross the border of Berlin no connectivity validation is done and member counts might be wrong.</p>
-	<p>Last update: ${mtime} (using berlin.osm.pbf from geofabrik.de)</p>
+	<p>Last update: ${mtime | h} (using berlin.osm.pbf from geofabrik.de)</p>
 	<table>
 		<thead>
 			<tr>
@@ -72,40 +72,40 @@ a {
 		<tbody>
 		% for l in lines:
 			<tr>
-				<td class="right"><a href="http://www.openstreetmap.org/browse/relation/${l['osmid']}">${l['osmid']}</a></td>
+				<td class="right"><a href="http://www.openstreetmap.org/browse/relation/${l['osmid'] | h}">${l['osmid'] | h}</a></td>
 				<td class="nowrap">
-<a href="http://api.openstreetmap.org/api/0.6/relation/${l['osmid']}" title="XML">x</a>
-<a href="http://ra.osmsurround.org/analyzeRelation?relationId=${l['osmid']}" title="OSM Relation Analyzer">a</a>
-<a href="http://osmrm.openstreetmap.de/relation.jsp?id=${l['osmid']}" title="OSM Route Manager">r</a>
-<a href="http://localhost:8111/import?url=http://api.openstreetmap.org/api/0.6/relation/${l['osmid']}/full" title="JOSM">j</a>
-<a href="http://osm.virtuelle-loipe.de/history/?type=relation&ref=${l['osmid']}" title="OSM History Browser">h</a>
-<a href="http://www.openstreetmap.org/?relation=${l['osmid']}" title="view">v</a>
-<a href="http://www.overpass-api.de/api/sketch-line?ref=${l['ref']}&network=VBB&style=wuppertal" title="Sketch Line">s</a>
-<a href="http://osmrm.openstreetmap.de/gpx.jsp?relation=${l['osmid']}" title="GPX">g</a>
+<a href="http://api.openstreetmap.org/api/0.6/relation/${l['osmid'] | h}" title="XML">x</a>
+<a href="http://ra.osmsurround.org/analyzeRelation?relationId=${l['osmid'] | h}" title="OSM Relation Analyzer">a</a>
+<a href="http://osmrm.openstreetmap.de/relation.jsp?id=${l['osmid'] | h}" title="OSM Route Manager">r</a>
+<a href="http://localhost:8111/import?url=http://api.openstreetmap.org/api/0.6/relation/${l['osmid'] | h}/full" title="JOSM">j</a>
+<a href="http://osm.virtuelle-loipe.de/history/?type=relation&ref=${l['osmid'] | h}" title="OSM History Browser">h</a>
+<a href="http://www.openstreetmap.org/?relation=${l['osmid'] | h}" title="view">v</a>
+<a href="http://www.overpass-api.de/api/sketch-line?ref=${l['ref'] | h}&network=VBB&style=wuppertal" title="Sketch Line">s</a>
+<a href="http://osmrm.openstreetmap.de/gpx.jsp?relation=${l['osmid'] | h}" title="GPX">g</a>
 				</td>
-				<td>${l['type']}</td>
-				<td>${l['route_master']}</td>
-				<td class="right">${l['relations']}</td>
-				<td>${l['route']}</td>
-				<td class="right">${l['ways']}</td>
-				<td class="right">${l['nodes']}</td>
-				<td>${l['ref']}</td>
+				<td>${l['type'] | h}</td>
+				<td>${l['route_master'] | h}</td>
+				<td class="right">${l['relations'] | h}</td>
+				<td>${l['route'] | h}</td>
+				<td class="right">${l['ways'] | h}</td>
+				<td class="right">${l['nodes'] | h}</td>
+				<td>${l['ref'] | h}</td>
 				<%
 					color = l['color'] if good_color(l['color']) else "#ffffff"
 				%>
-				<td class="monospace"><span style="background-color: ${color};">&nbsp;&nbsp;</span>&nbsp;${l['color']}</td>
-				<td>${l['name']}</td>
+				<td class="monospace"><span style="background-color: ${color};">&nbsp;&nbsp;</span>&nbsp;${l['color'] | h}</td>
+				<td>${l['name'] | h}</td>
 				<td>
 				% if len(l['errors']) > 0:
 					<ul>
 					% for e in l['errors']:
-						<li>${e}</li>
+						<li>${e | h}</li>
 					% endfor
 					</ul>
 				% endif
 				</td>
-				<td>${l['fixme']}</td>
-				<td>${l['note']}</td>
+				<td>${l['fixme'] | h}</td>
+				<td>${l['note'] | h}</td>
 			</tr>
 		% endfor
 		</tbody>
