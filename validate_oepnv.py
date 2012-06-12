@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import re
 import os
 import stat
@@ -291,8 +292,11 @@ class OEPNVNetwork:
 		print "Done."
 
 def main():
-	net = OEPNVNetwork()
-	net.create_report(pbf="berlin.osm.pbf", template="template.tpl", output="lines.htm")
+	if len(sys.argv) < 4:
+		print "Please speficy pbf file, template file and output file."
+	else:
+		net = OEPNVNetwork()
+		net.create_report(pbf=sys.argv[1], template=sys.argv[2], output=sys.argv[3])
 
 if __name__ == '__main__':
 	main()
