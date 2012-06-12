@@ -81,7 +81,7 @@ a {
 <a href="http://osm.virtuelle-loipe.de/history/?type=relation&ref=${l['osmid']}" title="OSM History Browser">h</a>
 <a href="http://www.openstreetmap.org/?relation=${l['osmid']}" title="view">v</a>
 <a href="http://www.overpass-api.de/api/sketch-line?ref=${l['ref']}&network=VBB&style=wuppertal" title="Sketch Line">s</a>
-<a href="http://osmrm.openstreetmap.de/gpx.jsp?relation=${l['osmid']}&network=VBB&style=wuppertal" title="GPX">g</a>
+<a href="http://osmrm.openstreetmap.de/gpx.jsp?relation=${l['osmid']}" title="GPX">g</a>
 				</td>
 				<td>${l['type']}</td>
 				<td>${l['route_master']}</td>
