@@ -237,7 +237,7 @@ class OEPNVNetwork:
 					errors.append("route without ways or type=route instead of type=route_master")
 				else:
 					if self.validate_connectivity(ways) == False:
-						errors.append("ways of route are not completely connected")
+						errors.append("ways of route are not completely connected (or have strange roles)")
 					# (if validate_connectivity returns None, we can't validate this route because parts of it are outside of our pbf-file)
 				if not has_node:
 					errors.append("route without nodes (stops missing?)")
