@@ -20,6 +20,7 @@ table {
 	border-collapse: collapse
 }
 th {
+	background-color: #eee;
 	text-align: left;
 }
 th,td {
