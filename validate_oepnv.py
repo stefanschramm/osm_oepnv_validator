@@ -156,7 +156,7 @@ class OEPNVNetwork:
 			unexpected_tags = ["route", "from", "to"]
 			for u in unexpected_tags:
 				if u in tags:
-					errors.append("unexpedted key: %s in route_master relation" % u)
+					errors.append("unexpected key: %s in route_master relation" % u)
 			if len(members) <= 0:
 				errors.append("route_master without members")
 			else:
