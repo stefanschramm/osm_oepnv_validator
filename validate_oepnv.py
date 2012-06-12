@@ -225,7 +225,8 @@ class OEPNVNetwork:
 				ways = []
 				for member in members:
 					osmid_member, typ, role = member
-					if typ == "way":	
+					if typ == "way" and role == "":
+						# only collect ways without role - others might be (not-connected) platforms
 						ways.append(osmid_member)
 					if typ == "node":	
 						has_node = True
