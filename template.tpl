@@ -49,7 +49,7 @@ a {
 	<h1>OSM Berlin Transportation Overview</h1>
 	<p>All relations with (type=route or type=route_master) and network=VBB and (operator=BVG or operator=S-Bahn Berlin GmbH).</p>
 	<p>For relations that cross the border of Berlin no connectivity validation is done and member counts might be wrong.</p>
-	<p>Last update: ${mtime}</p>
+	<p>Last update: ${mtime} (using berlin.osm.pbf from geofabrik.de)</p>
 	<table>
 		<thead>
 			<tr>
