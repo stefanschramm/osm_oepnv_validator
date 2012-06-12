@@ -66,6 +66,7 @@ a {
 				<th>color=</th>
 				<th>name=</th>
 				<th>validation errors</th>
+				<th>no <abbr title="route_master=">r_m</abbr></th>
 				<th>fixme+FIXME=</th>
 				<th>note=</th>
 			</tr>
@@ -105,6 +106,11 @@ a {
 					</ul>
 				% endif
 				</td>
+				% if l['noroutemaster']:
+				<td>x</td>
+				% else:
+				<td></td>
+				% endif
 				<td>${l['fixme'] | h}</td>
 				<td>${l['note'] | h}</td>
 			</tr>

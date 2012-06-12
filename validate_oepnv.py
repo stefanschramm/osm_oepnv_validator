@@ -244,6 +244,22 @@ class OEPNVNetwork:
 
 		return set(errors)
 
+	def no_route_master(self, line):
+		osmid, tags, members = line
+		if not "route" in tags:
+			# seems to be route master or something else
+			return False
+		if not osmid in self.parents:
+			# route without route_master
+			return True
+		for p in self.parents[osmid]:
+			parent_osmid, parent_tags, parent_members = self.collected_relations[p]
+			if "ref" in parent_tags and parent_tags["ref"] == tags["ref"] and "type" in parent_tags and parent_tags["type"] == "route_master":
+				# has correct route_master
+				return False
+		# no correct parent: missing route_master
+		return True
+
 	def create_report(self, pbf="berlin.osm.pbf", template="template.tpl", output="lines.htm"):
 
 		# collect all relations that should be validated
@@ -272,6 +288,7 @@ class OEPNVNetwork:
 			if "FIXME" in tags:
 				l["fixme"] += tags["FIXME"]
 			l['errors'] = self.validate(line)
+			l['noroutemaster'] = self.no_route_master(line)
 			members = self.count_member_types(line)
 			l['relations'] = members['relation']
 			l['ways'] = members['way']
