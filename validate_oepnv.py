@@ -34,14 +34,24 @@ class OEPNVNetwork:
 
 	# all valid keys for a relation (both, route or route_master)
 	valid_keys = ["name", "network", "operator", "ref", "route_master", "route", "type", "from", "to", "via", "by_night", "wheelchair", "bus", "direction", "note", "fixme", "FIXME", "color", "colour", "service_times", "description", "wikipedia"]
+
 	# keys that can't appear on a route_master
 	invalid_keys_route_master = ["route", "from", "to", "via"]
+
 	# keys that can't appear on a route
 	invalid_keys_route = ["route_master"]
+
 	# valid values for route attribute
 	valid_route_values = ["bus", "tram", "subway", "ferry", "light_rail"]
+
 	# valid values for route_master attribute
 	valid_route_master_values = ["bus", "tram", "subway", "ferry", "light_rail"]
+
+	# pattern for roles of nodes of routes
+	route_node_roles_pattern = "^(platform(:.*)?|stop(:.*)?|forward(:.*)?|backward|)$"
+
+	# pattern for roles of ways of routes that need to be connected to each other
+	route_way_roles_pattern = "^(|forward|backward)$"
 
 	lines = []
 	collected_relations = {}
@@ -247,12 +257,12 @@ class OEPNVNetwork:
 			ways = []
 			for member in members:
 				osmid_member, typ, role = member
-				if typ == "way" and role in ["", "forward", "backward"]:
+				if typ == "way" and re.match(self.route_way_roles_pattern, role):
 					# only collect ways without role - others might be (not-connected) platforms
 					ways.append(osmid_member)
 				if typ == "node":	
 					has_node = True
-					if not re.match("^(platform(:.*)?|stop(:.*)?|forward(:.*)?|backward|)$", role):
+					if not re.match(self.route_node_roles_pattern, role):
 						errors.append("route with node-member with a strange role: %s" % role)
 			if len(ways) <= 0:
 				errors.append("route without ways or type=route instead of type=route_master")
