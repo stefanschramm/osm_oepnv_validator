@@ -70,7 +70,7 @@ a {
 				<th>color=</th>
 				<th>name=</th>
 				<th>validation errors</th>
-				<th>no <abbr title="route_master=">r_m</abbr></th>
+				<th>no <abbr title="route_master">r_m</abbr></th>
 				<th>fixme+FIXME=</th>
 				<th>note=</th>
 			</tr>
