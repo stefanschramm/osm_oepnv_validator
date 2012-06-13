@@ -176,6 +176,10 @@ class OEPNVNetwork:
 			else:
 				if tags["route_master"] not in ["bus", "tram", "subway", "ferry", "light_rail"]:
 					errors.append("unexpected value for key route_master. expecting route_master=(bus|tram|subway|ferry|light_rail).")
+				if tags["route_master"] == "subway" and "color" not in tags:
+					errors.append(u'missing color=#... for subway route_master')
+				if tags["route_master"] == "tram" and "color" not in tags:
+					errors.append(u'missing color=#... for tram route_master')
 				if "name" in tags:
 					if tags["route_master"] == "bus":
 						if not re.match("^Buslinie ", tags["name"]):
@@ -216,9 +220,9 @@ class OEPNVNetwork:
 						if not re.match(u"^U-Bahnlinie ", tags["name"]):
 							errors.append(u'name does not match convention ("U-Bahnlinie ...")')
 				if tags["route"] == "subway" and "color" not in tags:
-					errors.append(u'missing color=#... for subway line')
+					errors.append(u'missing color=#... for subway route')
 				if tags["route"] == "tram" and "color" not in tags:
-					errors.append(u'missing color=#... for tram line')
+					errors.append(u'missing color=#... for tram route')
 			if len(members) <= 0:
 				errors.append("route without members")
 			else:
