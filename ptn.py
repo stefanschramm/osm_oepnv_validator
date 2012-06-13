@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# validate_oepnv.py - List and validate OEPNV in Berlin from OSM.
+# ptn.py - list and validate OSM public transport lines
 #
 # Copyright (C) 2012, Stefan Schramm <mail@stefanschramm.net>
 #
@@ -30,7 +30,7 @@ from mako.template import Template
 # sudo apt-get install python-imposm
 # sudo apt-get install python-mako
 
-class OEPNVNetwork:
+class PublicTransportNetwork:
 
 	# all valid keys for a relation (both, route or route_master)
 	valid_keys = ["name", "network", "operator", "ref", "route_master", "route", "type", "from", "to", "via", "by_night", "wheelchair", "bus", "direction", "note", "fixme", "FIXME", "color", "colour", "service_times", "description", "wikipedia"]
@@ -53,6 +53,14 @@ class OEPNVNetwork:
 	# pattern for roles of ways of routes that need to be connected to each other
 	route_way_roles_pattern = "^(|forward|backward)$"
 
+
+	text_region = ""
+	text_filter = ""
+	text_datasource = ""
+
+	route_validators = []
+	route_master_validators = []
+
 	lines = []
 	collected_relations = {}
 	interesting_ways = []
@@ -60,29 +68,19 @@ class OEPNVNetwork:
 	interesting_nodes = []
 	parents = {}
 
-	def relation_filter(self, relation):
-		# defines which relations to validate
-		osmid, tags, members = relation
-		return "network" in tags \
-			and tags["network"] == "VBB" \
-			and "operator" in tags \
-			and (tags["operator"] == "BVG" or tags["operator"] == "S-Bahn Berlin GmbH") \
-			and "type" in tags \
-			and tags["type"] in ["route", "route_master"]
+	# parent classes:
+	# def relation_filter(self, relation)
+	# - defines which relations to validate
 
-	def relation_ignore(self, relation):
+	def ignore_relation(self, relation):
 		# defines which relations are excluded from validation
-		osmid, tags, members = relation
-		# don't try to validate "...linien in Berlin"-relations
-		return osmid in [18812, 174283, 53181]
+		# can be overridden in parent class if required
+		return False
 
 	def relations(self, relations):
 		# callback: collect routes to validate
 		for relation in relations:
 			osmid, tags, members = relation
-			# fast DEBUGGING with line 100:
-			#if osmid not in [17697, 1900690, 1900691]:
-			#	continue
 			if self.relation_filter(relation):
 				self.lines.append(relation)
 				osmid, tags, members = relation
@@ -122,6 +120,7 @@ class OEPNVNetwork:
 		return types
 
 	def dfs(self, n, edges, stop):
+		# print n
 		# depth first search (called recursively), started by validate_connectivity
 		if n in stop:
 			return []
@@ -157,7 +156,12 @@ class OEPNVNetwork:
 		if len(nodes) == 0:
 			# no ways contained
 			return True
+		if len(nodes) > 900:
+			# no many nodes, would raise exception because of recursion
+			# TODO: implement better connectivity check
+			return None
 		# start dfs to check if all nodes are reachable from each other
+		# print "Ways: " + str(ways)
 		reached_nodes = self.dfs(nodes[0], edges, [])
 		not_reached = set(nodes).difference(set(reached_nodes))
 		return len(not_reached) == 0
@@ -189,27 +193,13 @@ class OEPNVNetwork:
 		if "ref" not in tags:
 			errors.append("missing ref")
 		if "route_master" not in tags:
-			errors.append("missing key route_master=(bus|tram|subway|ferry|light_rail)")
+			errors.append("missing key route_master=(%s)." % "|".join(self.valid_route_master_values))
 		else:
 			if tags["route_master"] not in self.valid_route_master_values:
-				errors.append("unexpected value for key route_master. expecting route_master=(bus|tram|subway|ferry|light_rail).")
-			if tags["route_master"] == "subway" and "color" not in tags:
-				errors.append(u'missing color=#... for subway route_master')
-			if tags["route_master"] == "tram" and "color" not in tags:
-				errors.append(u'missing color=#... for tram route_master')
-			if "name" in tags:
-				if tags["route_master"] == "bus":
-					if not re.match("^Buslinie ", tags["name"]):
-						errors.append(u'name does not match convention ("Buslinie ...")')
-				if tags["route_master"] == "ferry":
-					if not re.match(u"^Fähre ", tags["name"]):
-						errors.append(u'name does not match convention ("Fähre ...")')
-				if tags["route_master"] == "tram":
-					if not re.match(u"^Straßenbahnlinie ", tags["name"]):
-						errors.append(u'name does not match convention ("Straßenbahnlinie ...")')
-				if tags["route_master"] == "subway":
-					if not re.match(u"^U-Bahnlinie ", tags["name"]):
-						errors.append(u'name does not match convention ("U-Bahnlinie ...")')
+				errors.append("unexpected value for key route_master. expecting route_master=(%s)." % "|".join(self.valid_route_master_values))
+
+		for v in self.route_master_validators:
+			errors.extend(v(line))
 
 		return errors
 
@@ -227,27 +217,10 @@ class OEPNVNetwork:
 		if "ref" not in tags:
 			errors.append("missing ref")
 		if "route" not in tags:
-			errors.append("missing key route=(bus|tram|subway|ferry|light_rail)")
+			errors.append("missing key route=(%s)." % "|".join(self.valid_route_values))
 		else:
 			if tags["route"] not in self.valid_route_values:
-				errors.append("unexpected value for key route. expecting route=(bus|tram|subway|ferry|light_rail).")
-			if "name" in tags:
-				if tags["route"] == "bus":
-					if not re.match("^Buslinie ", tags["name"]):
-						errors.append(u'name does not match convention ("Buslinie ...")')
-				if tags["route"] == "ferry":
-					if not re.match(u"^Fähre ", tags["name"]):
-						errors.append(u'name does not match convention ("Fähre ...")')
-				if tags["route"] == "tram":
-					if not re.match(u"^Straßenbahnlinie ", tags["name"]):
-						errors.append(u'name does not match convention ("Straßenbahnlinie ...")')
-				if tags["route"] == "subway":
-					if not re.match(u"^U-Bahnlinie ", tags["name"]):
-						errors.append(u'name does not match convention ("U-Bahnlinie ...")')
-			if tags["route"] == "subway" and "color" not in tags:
-				errors.append(u'missing color=#... for subway route')
-			if tags["route"] == "tram" and "color" not in tags:
-				errors.append(u'missing color=#... for tram route')
+				errors.append("unexpected value for key route. expecting route=(%s)." % "|".join(self.valid_route_values))
 
 		# members
 		if len(members) <= 0:
@@ -272,6 +245,10 @@ class OEPNVNetwork:
 				# (if validate_connectivity returns None, we can't validate this route because parts of it are outside of our pbf-file)
 			if not has_node:
 				errors.append("route without nodes (stops missing?)")
+
+		for v in self.route_validators:
+			errors.extend(v(line))
+
 		return errors
 
 	def validate(self, line):
@@ -282,7 +259,7 @@ class OEPNVNetwork:
 
 		print "Validating line %s..." % osmid
 
-		if self.relation_ignore(line):
+		if self.ignore_relation(line):
 			return ["(ignoring this relation)"]
 
 		for key in tags:
@@ -354,8 +331,7 @@ class OEPNVNetwork:
 
 		# write template
 		tpl = Template(filename=template, default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace')
-		# TODO: escape html - in template?
-		content = tpl.render(lines=lines_tpl, mtime=mtime)
+		content = tpl.render(lines=lines_tpl, mtime=mtime, region=self.text_region, filter=self.text_filter, datasource=self.text_datasource)
 		f = open(output, 'w')
 		f.write(content)
 		f.close()
@@ -366,7 +342,7 @@ def main():
 	if len(sys.argv) < 4:
 		print "Please speficy pbf file, template file and output file."
 	else:
-		net = OEPNVNetwork()
+		net = PublicTransportNetwork()
 		net.create_report(pbf=sys.argv[1], template=sys.argv[2], output=sys.argv[3])
 
 if __name__ == '__main__':

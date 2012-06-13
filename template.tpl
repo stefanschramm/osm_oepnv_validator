@@ -8,7 +8,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-	<title>OSM Berlin Transportation Overview</title>
+	<title>OSM ${region | h} Transportation Overview</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<style type="text/css">
 body,td {
@@ -38,6 +38,9 @@ a {
 .right {
 	text-align: right;
 }
+.center {
+	text-align: center;
+}
 .monospace {
 	font-family: monospace;
 }
@@ -47,10 +50,11 @@ a {
 	</style>
 </head>
 <body>
-	<h1>OSM Berlin Transportation Overview</h1>
-	<p>All relations with (type=route or type=route_master) and network=VBB and (operator=BVG or operator=S-Bahn Berlin GmbH).</p>
-	<p>For relations that cross the border of Berlin no connectivity validation is done and member counts might be wrong.</p>
-	<p>Last update: ${mtime | h} (using berlin.osm.pbf from geofabrik.de)</p>
+	<h1>OSM ${region | h} Transportation Overview</h1>
+	<p>${filter | h}</p>
+	<p>For relations which contain members outside of the data source no connectivity validation is done and member counts might be wrong.</p>
+	<p><strong>Data source:</strong> ${datasource | h}</p>
+	<p><strong>Last update:</strong> ${mtime | h}</p>
 	<table>
 		<thead>
 			<tr>
@@ -107,9 +111,9 @@ a {
 				% endif
 				</td>
 				% if l['noroutemaster']:
-				<td>x</td>
+				<td class="center">x</td>
 				% else:
-				<td></td>
+				<td class="center"></td>
 				% endif
 				<td>${l['fixme'] | h}</td>
 				<td>${l['note'] | h}</td>
