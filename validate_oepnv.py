@@ -32,6 +32,17 @@ from mako.template import Template
 
 class OEPNVNetwork:
 
+	# all valid keys for a relation (both, route or route_master)
+	valid_keys = ["name", "network", "operator", "ref", "route_master", "route", "type", "from", "to", "via", "by_night", "wheelchair", "bus", "direction", "note", "fixme", "FIXME", "color", "colour", "service_times", "description", "wikipedia"]
+	# keys that can't appear on a route_master
+	invalid_keys_route_master = ["route", "from", "to", "via"]
+	# keys that can't appear on a route
+	invalid_keys_route = ["route_master"]
+	# valid values for route attribute
+	valid_route_values = ["bus", "tram", "subway", "ferry", "light_rail"]
+	# valid values for route_master attribute
+	valid_route_master_values = ["bus", "tram", "subway", "ferry", "light_rail"]
+
 	lines = []
 	collected_relations = {}
 	interesting_ways = []
@@ -101,7 +112,7 @@ class OEPNVNetwork:
 		return types
 
 	def dfs(self, n, edges, stop):
-		# depth first search (called recursively)
+		# depth first search (called recursively), started by validate_connectivity
 		if n in stop:
 			return []
 		reached = [n]
@@ -152,16 +163,15 @@ class OEPNVNetwork:
 		if self.relation_ignore(line):
 			return ["(ignoring this relation)"]
 
-		all_known_keys = ["name", "network", "operator", "ref", "route_master", "route", "type", "from", "to", "via", "by_night", "wheelchair", "bus", "direction", "note", "fixme", "FIXME", "color", "colour", "service_times", "description", "wikipedia"]
 		for key in tags:
-			if not key.split(":")[0] in all_known_keys:
+			main_key = key.split(":")[0]
+			if not main_key in self.valid_keys:
 				errors.append("unknown key: %s" % key)
 
 		if tags["type"] == "route_master":
-			unexpected_tags = ["route", "from", "to"]
-			for u in unexpected_tags:
-				if u in tags:
-					errors.append("unexpected key: %s in route_master relation" % u)
+			for i in self.invalid_keys_route_master:
+				if i in tags:
+					errors.append("unexpected key: %s in route_master relation" % i)
 			if len(members) <= 0:
 				errors.append("route_master without members")
 			else:
@@ -179,7 +189,7 @@ class OEPNVNetwork:
 			if "route_master" not in tags:
 				errors.append("missing key route_master=(bus|tram|subway|ferry|light_rail)")
 			else:
-				if tags["route_master"] not in ["bus", "tram", "subway", "ferry", "light_rail"]:
+				if tags["route_master"] not in self.valid_route_master_values:
 					errors.append("unexpected value for key route_master. expecting route_master=(bus|tram|subway|ferry|light_rail).")
 				if tags["route_master"] == "subway" and "color" not in tags:
 					errors.append(u'missing color=#... for subway route_master')
@@ -209,7 +219,7 @@ class OEPNVNetwork:
 			if "route" not in tags:
 				errors.append("missing key route=(bus|tram|subway|ferry|light_rail)")
 			else:
-				if tags["route"] not in ["bus", "tram", "subway", "ferry", "light_rail"]:
+				if tags["route"] not in self.valid_route_values:
 					errors.append("unexpected value for key route. expecting route=(bus|tram|subway|ferry|light_rail).")
 				if "name" in tags:
 					if tags["route"] == "bus":
