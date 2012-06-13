@@ -152,6 +152,11 @@ class OEPNVNetwork:
 		if self.relation_ignore(line):
 			return ["(ignoring this relation)"]
 
+		all_known_keys = ["name", "network", "operator", "ref", "route_master", "route", "type", "from", "to", "via", "by_night", "wheelchair", "bus", "direction", "note", "fixme", "FIXME", "color", "colour", "service_times", "description", "wikipedia"]
+		for key in tags:
+			if not key.split(":")[0] in all_known_keys:
+				errors.append("unknown key: %s" % key)
+
 		if tags["type"] == "route_master":
 			unexpected_tags = ["route", "from", "to"]
 			for u in unexpected_tags:
