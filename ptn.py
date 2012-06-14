@@ -108,14 +108,19 @@ class PublicTransportNetwork:
 
 	def get_sortkey(self, line):
 		osmid, tags, members = line
+		key = ""
+		if "route_master" in tags:
+			key += tags["route_master"]
+		elif "route" in tags:
+			key += tags["route"]
+		key += "_"
 		if "ref" in tags:
-			sortkey = tags["ref"]
-			for number in set(re.findall("[0-9]+", sortkey)):
+			ref = tags["ref"]
+			for number in set(re.findall("[0-9]+", ref)):
 				# append a lot of leading zeroes to each number
-				sortkey = sortkey.replace(number, "%010i" % int(number))
-			return sortkey
-		else:
-			return ""
+				ref = ref.replace(number, "%010i" % int(number))
+			key += ref
+		return key
 
 	def count_member_types(self, relation):
 		# count how many members of each type the relation has
