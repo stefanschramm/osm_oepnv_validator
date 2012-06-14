@@ -1,8 +1,18 @@
 ## -*- coding: utf-8 -*-
-<%!
+<%
 	import re
+
 	def good_color(color):
 		return re.match("#[0-9A-Fa-f]{6}", color)
+
+	error_classes = {}
+	for l in lines:
+		for e in l["errors"]:
+			if e[0] not in error_classes:
+				error_classes[e[0]] = 1
+			else:
+				error_classes[e[0]] += 1
+
 %>
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
@@ -10,6 +20,28 @@
 <head>
 	<title>OSM ${region | h} Transportation Overview</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+	<script type="text/javascript">
+
+function checkCheckbox(checkbox) {
+	var errors = $('.' + checkbox.getAttribute("name"));
+	if (checkbox.checked) {
+		errors.show()
+	}
+	else {
+		errors.hide()
+	}
+}
+function init() {
+	$('input').show();
+	$('input').each(function(index, checkbox) {
+		checkCheckbox(checkbox);
+	});
+}
+
+$(document).ready(init);
+
+	</script>
 	<style type="text/css">
 body,td {
 	font-family: sans-serif;
@@ -47,6 +79,9 @@ a {
 .nowrap {
 	white-space: nowrap;
 }
+input {
+	display: none;
+}
 	</style>
 </head>
 <body>
@@ -55,6 +90,11 @@ a {
 	<p>For relations which contain members outside of the data source no connectivity validation is done and member counts might be wrong.</p>
 	<p><strong>Data source:</strong> ${datasource | h}</p>
 	<p><strong>Last update:</strong> ${mtime | h}</p>
+	<div>
+	% for ec in error_classes:
+		<input type="checkbox" name="${ec | h}" value="1" checked="checked" onchange="return checkCheckbox(this);" />${ec | h} (${error_classes[ec] | h})
+	% endfor
+	</div>
 	<table>
 		<thead>
 			<tr>
@@ -105,7 +145,7 @@ a {
 				% if len(l['errors']) > 0:
 					<ul>
 					% for e in l['errors']:
-						<li>${e | h}</li>
+						<li class="${e[0] | h}">${e[1] | h}</li>
 					% endfor
 					</ul>
 				% endif

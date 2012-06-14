@@ -53,15 +53,15 @@ class PublicTransportNetworkBerlin(PublicTransportNetwork):
 			return []
 
 		if tags[key] == "bus" and not re.match("^Buslinie ", tags["name"]):
-				return [u'name does not match convention ("Buslinie ...")']
+				return [("wrong_name", u'name does not match convention ("Buslinie ...")')]
 		if tags[key] == "ferry" and not re.match(u"^Fähre ", tags["name"]):
-				return [u'name does not match convention ("Fähre ...")']
+				return [("wrong_name", u'name does not match convention ("Fähre ...")')]
 		if tags[key] == "tram" and not re.match(u"^Straßenbahnlinie ", tags["name"]):
-				return [u'name does not match convention ("Straßenbahnlinie ...")']
+				return [("wrong_name", u'name does not match convention ("Straßenbahnlinie ...")')]
 		if tags[key] == "subway" and not re.match(u"^U-Bahnlinie ", tags["name"]):
-				return [u'name does not match convention ("U-Bahnlinie ...")']
+				return [("wrong_name", u'name does not match convention ("U-Bahnlinie ...")')]
 		if tags[key] == "light_rail" and not re.match(u"^S-Bahnlinie ", tags["name"]):
-				return [u'name does not match convention ("U-Bahnlinie ...")']
+				return [("wrong_name", u'name does not match convention ("U-Bahnlinie ...")')]
 
 		return []
 
@@ -75,11 +75,13 @@ class PublicTransportNetworkBerlin(PublicTransportNetwork):
 		if key not in tags:
 			return []
 
+		# TODO: it actually should be "colour" instead of "color"!
+		# http://wiki.openstreetmap.org/wiki/Key:colour
 		if tags[key] in ["subway", "tram", "light_rail"] and "color" not in tags:
-			return ['missing color=#... for %s' % tags[key]]
+			return [("no_color", 'missing color=#... for %s' % tags[key])]
 
 		if "color" in tags and not re.match("^#[a-fA-F0-9]{6}$", tags["color"]):
-			return ['color should be specified as hexadecimal value like #ff0000']
+			return [("wrong_color", 'color should be specified as hexadecimal value like #ff0000')]
 
 		return []
 

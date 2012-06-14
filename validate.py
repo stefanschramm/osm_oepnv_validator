@@ -24,6 +24,7 @@ import os
 import stat
 import datetime
 from berlin import PublicTransportNetworkBerlin
+#from rostock import PublicTransportNetworkRostock
 #from hamburg import PublicTransportNetworkHamburg
 #from dresden import PublicTransportNetworkDresden
 #from leipzig import PublicTransportNetworkLeipzig

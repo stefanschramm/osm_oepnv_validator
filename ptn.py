@@ -42,16 +42,19 @@ class PublicTransportNetwork:
 	invalid_keys_route = ["route_master"]
 
 	# valid values for route attribute
-	valid_route_values = ["bus", "tram", "subway", "ferry", "light_rail"]
+	# http://wiki.openstreetmap.org/wiki/Relation:route#Core_values
+	valid_route_values = ["bus", "trolleybus", "share_taxi", "train", "monorail", "subway", "tram", "ferry", "light_rail"]
 
 	# valid values for route_master attribute
-	valid_route_master_values = ["bus", "tram", "subway", "ferry", "light_rail"]
+	valid_route_master_values = valid_route_values
 
 	# pattern for roles of nodes of routes
-	route_node_roles_pattern = "^(platform(:.*)?|stop(:.*)?|forward(:.*)?|backward|)$"
+	# http://wiki.openstreetmap.org/wiki/Relation:route#Members
+	route_node_roles_pattern = "^(stop:[0-9]+|stop|forward:stop:[0-9]+|backward:stop:[0-9]+|platform:[0-9]+|platform)$"
 
 	# pattern for roles of ways of routes that need to be connected to each other
-	route_way_roles_pattern = "^(|forward|backward)$"
+	# http://wiki.openstreetmap.org/wiki/Relation:route#Members
+	route_way_roles_pattern = "^(|route|forward|backward|platform:[0-9]+|platform)$"
 
 
 	text_region = ""
@@ -173,7 +176,7 @@ class PublicTransportNetwork:
 		# invalid keys
 		for i in self.invalid_keys_route_master:
 			if i in tags:
-				errors.append("unexpected key: %s in route_master relation" % i)
+				errors.append(("unexpected_key", "unexpected key: %s in route_master relation" % i))
 
 		# no members
 		if len(members) <= 0:
@@ -183,20 +186,20 @@ class PublicTransportNetwork:
 				osmid_member, typ, role = member
 				if typ == "relation":
 					if osmid_member not in self.collected_relations:
-						errors.append("member id %i not found (missing network and/or operator tag?)" % osmid_member)
+						errors.append(("unknown_member", "member id %i not found (missing network and/or operator tag?)" % osmid_member))
 				else:
-					errors.append("route_master with non-relation member")
+					errors.append(("wrong_member", "route_master with non-relation member"))
 
 		# missing tags
 		if "name" not in tags:
-			errors.append("missing name")
+			errors.append(("missing_tag", "missing name"))
 		if "ref" not in tags:
-			errors.append("missing ref")
+			errors.append(("missing_tag", "missing ref"))
 		if "route_master" not in tags:
-			errors.append("missing key route_master=(%s)." % "|".join(self.valid_route_master_values))
+			errors.append(("missing_tag", "missing route_master=(%s)." % "|".join(self.valid_route_master_values)))
 		else:
 			if tags["route_master"] not in self.valid_route_master_values:
-				errors.append("unexpected value for key route_master. expecting route_master=(%s)." % "|".join(self.valid_route_master_values))
+				errors.append(("unexpected_value", "unexpected value for key route_master. expecting route_master=(%s)." % "|".join(self.valid_route_master_values)))
 
 		for v in self.route_master_validators:
 			errors.extend(v(line))
@@ -209,22 +212,22 @@ class PublicTransportNetwork:
 
 		# invalid keys
 		if "route_master" in tags:
-			errors.append("unexpedted key: route_master in route relation")
+			errors.append(("unexpected_key", "unexpected key: route_master in route relation"))
 
 		# missing tags
 		if "name" not in tags:
-			errors.append("missing name")
+			errors.append(("missing_tag", "missing name"))
 		if "ref" not in tags:
-			errors.append("missing ref")
+			errors.append(("missing_tag", "missing ref"))
 		if "route" not in tags:
-			errors.append("missing key route=(%s)." % "|".join(self.valid_route_values))
+			errors.append(("missing_tag", "missing route=(%s)." % "|".join(self.valid_route_values)))
 		else:
 			if tags["route"] not in self.valid_route_values:
-				errors.append("unexpected value for key route. expecting route=(%s)." % "|".join(self.valid_route_values))
+				errors.append(("unexpected_value", "unexpected value for key route. expecting route=(%s)." % "|".join(self.valid_route_values)))
 
 		# members
 		if len(members) <= 0:
-			errors.append("route without members")
+			errors.append(("no_members", "route without members"))
 		else:
 			has_node = False
 			ways = []
@@ -236,15 +239,15 @@ class PublicTransportNetwork:
 				if typ == "node":	
 					has_node = True
 					if not re.match(self.route_node_roles_pattern, role):
-						errors.append("route with node-member with a strange role: %s" % role)
+						errors.append(("unexpected_role", "route with node-member with a strange role: %s" % ("(empty)" if role == "" else role)))
 			if len(ways) <= 0:
-				errors.append("route without ways or type=route instead of type=route_master")
+				errors.append(("no_ways", "route without ways or type=route instead of type=route_master"))
 			else:
 				if self.validate_connectivity(ways) == False:
-					errors.append("ways of route are not completely connected (or have strange roles)")
+					errors.append(("disconnected_ways", "ways of route are not completely connected (or have strange roles)"))
 				# (if validate_connectivity returns None, we can't validate this route because parts of it are outside of our pbf-file)
 			if not has_node:
-				errors.append("route without nodes (stops missing?)")
+				errors.append(("no_nodes", "route without nodes (stops missing?)"))
 
 		for v in self.route_validators:
 			errors.extend(v(line))
@@ -260,12 +263,12 @@ class PublicTransportNetwork:
 		print "Validating line %s..." % osmid
 
 		if self.ignore_relation(line):
-			return ["(ignoring this relation)"]
+			return [("ignored", "(ignoring this relation)")]
 
 		for key in tags:
 			main_key = key.split(":")[0]
 			if not main_key in self.valid_keys:
-				errors.append("unknown key: %s" % key)
+				errors.append(("unknown_key", "unknown key: %s" % key))
 
 		if tags["type"] == "route_master":
 			errors.extend(self.validate_route_master(line))
