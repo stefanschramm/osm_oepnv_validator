@@ -34,7 +34,7 @@ function checkCheckbox(checkbox) {
 }
 function init() {
 	$('input').show();
-	$('input').each(function(index, checkbox) {
+	$('input.checkbox').each(function(index, checkbox) {
 		checkCheckbox(checkbox);
 	});
 }
@@ -90,9 +90,10 @@ input {
 	<p>For relations which contain members outside of the data source no connectivity validation is done and member counts might be wrong.</p>
 	<p><strong>Data source:</strong> ${datasource | h}</p>
 	<p><strong>Last update:</strong> ${mtime | h}</p>
-	<div>
+	<div><strong>Format:</strong> <input type="submit" value="no-wrap" onclick="$('td').css('white-space', 'nowrap'); return false;" /></div>
+	<div><strong>Error classes:</strong>
 	% for ec in error_classes:
-		<input type="checkbox" name="${ec | h}" value="1" checked="checked" onchange="return checkCheckbox(this);" />${ec | h} (${error_classes[ec] | h})
+		<input class="checkbox" type="checkbox" name="${ec | h}" value="1" checked="checked" onchange="return checkCheckbox(this);" />${ec | h} (${error_classes[ec] | h})
 	% endfor
 	</div>
 	<table>
