@@ -1,4 +1,6 @@
 ## -*- coding: utf-8 -*-
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <%
 	import re
 
@@ -14,8 +16,6 @@
 				error_classes[e[0]] += 1
 
 %>
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<title>OSM ${region | h} Transportation Overview</title>
@@ -124,9 +124,9 @@ input {
 <a href="http://ra.osmsurround.org/analyzeRelation?relationId=${l['osmid'] | h}" title="OSM Relation Analyzer">a</a>
 <a href="http://osmrm.openstreetmap.de/relation.jsp?id=${l['osmid'] | h}" title="OSM Route Manager">r</a>
 <a href="http://localhost:8111/import?url=http://api.openstreetmap.org/api/0.6/relation/${l['osmid'] | h}/full" title="JOSM">j</a>
-<a href="http://osm.virtuelle-loipe.de/history/?type=relation&ref=${l['osmid'] | h}" title="OSM History Browser">h</a>
+<a href="http://osm.virtuelle-loipe.de/history/?type=relation&amp;ref=${l['osmid'] | h}" title="OSM History Browser">h</a>
 <a href="http://www.openstreetmap.org/?relation=${l['osmid'] | h}" title="view">v</a>
-<a href="http://www.overpass-api.de/api/sketch-line?ref=${l['ref'] | h}&network=VBB&style=wuppertal" title="Sketch Line">s</a>
+<a href="http://www.overpass-api.de/api/sketch-line?ref=${l['ref'] | h}&amp;network=VBB&amp;style=wuppertal" title="Sketch Line">s</a>
 <a href="http://osmrm.openstreetmap.de/gpx.jsp?relation=${l['osmid'] | h}" title="GPX">g</a>
 				</td>
 				<td>${l['type'] | h}</td>
@@ -139,7 +139,7 @@ input {
 				<%
 					color = l['color'] if good_color(l['color']) else "#ffffff"
 				%>
-				<td class="monospace"><span style="background-color: ${color};">&nbsp;&nbsp;</span>&nbsp;${l['color'] | h}</td>
+				<td class="monospace"><span style="background-color: ${color};">&#160;&#160;</span>&#160;${l['color'] | h}</td>
 				<td>${l['name'] | h}</td>
 				<td>
 				% if len(l['errors']) > 0:
