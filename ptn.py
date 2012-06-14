@@ -108,8 +108,12 @@ class PublicTransportNetwork:
 
 	def get_sortkey(self, line):
 		osmid, tags, members = line
-		if "name" in tags:
-			return tags["name"]
+		if "ref" in tags:
+			sortkey = tags["ref"]
+			for number in set(re.findall("[0-9]+", sortkey)):
+				# append a lot of leading zeroes to each number
+				sortkey = sortkey.replace(number, "%010i" % int(number))
+			return sortkey
 		else:
 			return ""
 
