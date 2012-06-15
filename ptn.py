@@ -142,6 +142,12 @@ class PublicTransportNetwork:
 				# append a lot of leading zeroes to each number
 				ref = ref.replace(number, "%010i" % int(number))
 			key += ref
+		key += "_"
+		if "type" in tags and tags["type"] == "route_master":
+			# for same refs put route_master at top
+			key += "0"
+		else:
+			key += "1"
 		return key
 
 	def count_member_types(self, relation):
