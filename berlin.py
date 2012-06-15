@@ -91,3 +91,41 @@ class PublicTransportNetworkBerlin(PublicTransportNetwork):
 
 		return []
 
+	def is_normal_bus(self, r):
+		return (("route" in r[1] and r[1]["route"] == "bus") or \
+				("route_master" in r[1] and r[1]["route_master"] == "bus")) and \
+				("ref" in r[1] and re.match("^[0-9]+$", r[1]["ref"]))
+
+	def is_metro_bus(self, r):
+		return (("route" in r[1] and r[1]["route"] == "bus") or \
+				("route_master" in r[1] and r[1]["route_master"] == "bus")) and \
+				("ref" in r[1] and re.match("^M[0-9]+$", r[1]["ref"]))
+
+	def is_express_bus(self, r):
+		return (("route" in r[1] and r[1]["route"] == "bus") or \
+				("route_master" in r[1] and r[1]["route_master"] == "bus")) and \
+				("ref" in r[1] and (re.match("^X[0-9]+$", r[1]["ref"])) or (r[1]["ref"] == "TXL"))
+
+	def is_normal_tram(self, r):
+		return (("route" in r[1] and r[1]["route"] == "tram") or \
+				("route_master" in r[1] and r[1]["route_master"] == "tram")) and \
+				("ref" in r[1] and re.match("^[0-9]+$", r[1]["ref"]))
+
+	def is_metro_tram(self, r):
+		return (("route" in r[1] and r[1]["route"] == "tram") or \
+				("route_master" in r[1] and r[1]["route_master"] == "tram")) and \
+				("ref" in r[1] and re.match("^M[0-9]+$", r[1]["ref"]))
+
+	def is_ubahn(self, r):
+		return (("route" in r[1] and r[1]["route"] == "subway") or \
+				("route_master" in r[1] and r[1]["route_master"] == "subway")) and \
+				("ref" in r[1] and re.match("^U[0-9]+$", r[1]["ref"]))
+
+	def is_sbahn(self, r):
+		return (("route" in r[1] and r[1]["route"] == "light_rail") or \
+				("route_master" in r[1] and r[1]["route_master"] == "light_rail")) and \
+				("ref" in r[1] and re.match("^S[0-9]+$", r[1]["ref"]))
+
+	def is_s_or_u_bahn(self, r):
+		return self.is_sbahn(r) or self.is_ubahn(r)
+
