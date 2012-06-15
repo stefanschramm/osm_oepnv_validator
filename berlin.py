@@ -23,9 +23,13 @@ class PublicTransportNetworkBerlin(PublicTransportNetwork):
 	def relation_filter(self, relation):
 		# defines which relations to validate
 		osmid, tags, members = relation
-		# fast DEBUGGING with bus line 100:
-		#if osmid not in [17697, 1900690, 1900691]:
-		#	continue
+		# for fast DEBUGGING:
+		# Bus 100:
+		# return osmid in [17697, 1900690, 1900691]
+		# U 55:
+		# return osmid in [58430, 2227743, 2227744]
+		# Bus 255:
+		# return osmid in [1639447, 1990677, 1990676]
 		return "network" in tags \
 			and tags["network"] == "VBB" \
 			and "operator" in tags \
