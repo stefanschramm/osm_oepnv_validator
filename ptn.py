@@ -68,10 +68,8 @@ class PublicTransportNetwork:
 
 	lines = []
 	relations = {}
-	interesting_ways = []
 	ways = {}
-	interesting_nodes = []
-	g = {}
+	nodes = {}
 	parents = {}
 
 	# parent classes:
@@ -94,9 +92,9 @@ class PublicTransportNetwork:
 				for member in members:
 					osmid_member, typ, role = member
 					if typ == "node":
-						self.interesting_nodes.append(osmid_member)
+						self.nodes[osmid_member] = None
 					if typ == "way":
-						self.interesting_ways.append(osmid_member)
+						self.ways[osmid_member] = None
 					if typ == "relation":
 						if osmid_member not in self.parents:
 							self.parents[osmid_member] = [osmid]
@@ -107,16 +105,16 @@ class PublicTransportNetwork:
 		# callback: collect interesting ways
 		for way in ways:
 			osmid, tags, nodes = way
-			if osmid in self.interesting_ways:
+			if osmid in self.ways and self.ways[osmid] == None:
 				self.ways[osmid] = nodes # TODO: collect complete way instead of node-ids
 				# self.interesting_nodes.extend(nodes)
 
 	def nodes_cb(self, nodes):
-		# callback: collect interesting ways
+		# callback: collect interesting nodes
 		for node in nodes:
 			osmid, tags, coords = node
-			if osmid in self.interesting_nodes:
-				self.g[osmid] = node
+			if osmid in self.nodes and self.nodes[osmid] == None:
+				self.nodes[osmid] = node
 
 	def get_sortkey(self, line):
 		osmid, tags, members = line
@@ -162,7 +160,7 @@ class PublicTransportNetwork:
 		# build a connectivity (edge) matrix for all nodes in all ways
 		for way in ways:
 			node_prev = None
-			if way not in self.ways:
+			if way not in self.ways or self.ways[way] == None:
 				return None # unable to validate - way not in pbf
 			for node in self.ways[way]:
 				nodes.append(node)
@@ -319,7 +317,7 @@ class PublicTransportNetwork:
 
 		self.pbf = pbf
 
-		# (doing 2 parses because this tooks less time+space than collecting everything in a single parse)
+		# (doing 2 parses because this tooks less memory+time than collecting everything in a single parse)
 
 		# first pass:
 		# collect all relations that should be validated
@@ -330,11 +328,9 @@ class PublicTransportNetwork:
 		# second pass:
 		# collect ways for these relations for performing a connectivity check
 		# collect nodes too
-		self.interesting_ways = list(set(self.interesting_ways))
-		print "Collecting %i interesting ways and %i nodes..." % (len(self.interesting_ways), len(self.interesting_nodes))
+		print "Collecting %i ways and %i nodes..." % (len(self.ways), len(self.nodes))
 		p = OSMParser(concurrency=4, ways_callback=self.ways_cb, nodes_callback=self.nodes_cb)
 		p.parse(pbf)
-
 
 	def create_report(self, template="template.tpl", output="lines.htm"):
 
@@ -384,11 +380,11 @@ class PublicTransportNetwork:
 				osmid_member, typ, role = member
 				if typ != "node" or not re.match(self.route_node_roles_pattern, role):
 					continue
-				# osmid_member, tags, coords = self.g[osmid_member]
-				if not osmid_member in self.g:
+				# osmid_member, tags, coords = self.nodes[osmid_member]
+				if not osmid_member in self.nodes:
 					# station hasn't been collected - probably not in pbf
 					continue
-				stations.append(self.g[osmid_member])
+				stations.append(self.nodes[osmid_member])
 			line = [osmid, tags, stations]
 			lines.append(line)
 		# print lines
@@ -424,13 +420,13 @@ class PublicTransportNetwork:
 				names1 = []
 				names2 = []
 				for s in stops1:
-					if s in self.g:
-						osmid_s, tags, coords= self.g[s]
+					if s in self.nodes:
+						osmid_s, tags, coords= self.nodes[s]
 						if "name" in tags and tags["name"] not in names1:
 							names1.append(tags["name"])
 				for s in stops2:
-					if s in self.g:
-						osmid_s, tags, coords= self.g[s]
+					if s in self.nodes:
+						osmid_s, tags, coords= self.nodes[s]
 						if "name" in tags and tags["name"] not in names2:
 							names2.append(tags["name"])
 
