@@ -28,6 +28,8 @@ class PublicTransportNetworkBerlin(PublicTransportNetwork):
 		# return osmid in [17697, 1900690, 1900691]
 		# U 55:
 		# return osmid in [58430, 2227743, 2227744]
+		# U 2:
+		# return osmid in [58428]
 		# Bus 255:
 		# return osmid in [1639447, 1990677, 1990676]
 		return "network" in tags \
