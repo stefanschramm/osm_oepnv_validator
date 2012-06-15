@@ -15,6 +15,8 @@
 			else:
 				error_classes[e[0]] += 1
 
+	zebracounter = 1
+	zebra_prev_ref = 0
 %>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -89,6 +91,18 @@ input {
 .selected {
 	background-color: #ddd;
 }
+.zebra1_master {
+	background: #3D7AB8
+}
+.zebra1_route {
+	background: #9FBFDF
+}
+.zebra2_master {
+	background: #62CB62
+}
+.zebra2_route {
+	background: #94DB94
+}
 	</style>
 </head>
 <body>
@@ -125,7 +139,24 @@ input {
 		</thead>
 		<tbody>
 		% for l in lines:
-			<tr>
+			<%
+
+			if (zebra_prev_ref != l['ref']):
+				zebra_prev_ref = l['ref']
+				zebracounter += 1
+			next=0
+			for e in l['errors']:
+				if (e[0] == "ignored"):
+					trclass = "zebra_leer"
+					next = 1
+			if (next == 0):
+				if (l['type'] == "route"):
+					trclass = "zebra1_route" if zebracounter % 2 == 1 else "zebra2_route"
+				else:
+					trclass = "zebra1_master" if zebracounter % 2 == 1 else "zebra2_master"
+
+			%>
+			<tr class="${trclass}">
 				<td class="right"><a href="http://www.openstreetmap.org/browse/relation/${l['osmid'] | h}">${l['osmid'] | h}</a></td>
 				<td class="nowrap">
 <a href="http://api.openstreetmap.org/api/0.6/relation/${l['osmid'] | h}" title="XML">x</a>
