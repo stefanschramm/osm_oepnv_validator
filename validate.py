@@ -48,7 +48,8 @@ def main():
 		# net.draw_station_network(filterfunction=lambda r: "route" in r[1] and r[1]["route"] == "tram" ,output="tram.htm")
 		# draw M-bus network:
 		# net.draw_station_network(filterfunction=lambda r: "route" in r[1] and r[1]["route"] == "bus" and "ref" in r[1] and re.match("^M[0-9]+$", r[1]["ref"]), output="mbus.htm")
-		# net.draw_lines()
+
+		# net.print_master_routes()
 
 	# other regions - highly experimental
 	# net = PublicTransportNetworkHamburg()

@@ -102,15 +102,15 @@ class PublicTransportNetwork:
 				self.relations[rid] = relation
 				for member in members:
 					mid, typ, role = member
+					# TODO: put nodes and ways also in self.parents; would be useful for printing "other connections from this station"
 					if typ == "node":
 						self.nodes[mid] = None
 					if typ == "way":
 						self.ways[mid] = None
-					if typ == "relation":
-						if mid not in self.parents:
-							self.parents[mid] = [rid]
-						else:
-							self.parents[mid].append(rid)
+					if (typ, mid) not in self.parents:
+						self.parents[(typ, mid)] = [("relation", rid)]
+					else:
+						self.parents[(typ, mid)].append(("relation", rid))
 
 	def ways_cb(self, ways):
 		# callback: collect interesting ways
@@ -314,11 +314,13 @@ class PublicTransportNetwork:
 		if not "route" in tags:
 			# seems to be route master or something else
 			return False
-		if not rid in self.parents:
+		if not ("relation", rid) in self.parents:
 			# route without route_master
 			return True
-		for p in self.parents[rid]:
-			parent_id, parent_tags, parent_members = self.relations[p]
+		for p in self.parents[("relation", rid)]:
+			if p[0] != "relation":
+				continue
+			parent_id, parent_tags, parent_members = self.relations[p[1]]
 			if "ref" in parent_tags and parent_tags["ref"] == tags["ref"] and "type" in parent_tags and parent_tags["type"] == "route_master":
 				# has correct route_master
 				return False
@@ -409,63 +411,108 @@ class PublicTransportNetwork:
 		f.write(content)
 		f.close()
 
-	def draw_lines(self, target_dir="lines"):
+	def print_master_routes(self, target_dir="lines"):
+		output = ""
                 for relation in sorted(self.relations.values(), key=self.get_sortkey):
 			rid, tags, members = relation
-			if "type" not in tags or tags["type"] != "route_master":
+			if "type" not in tags or tags["type"] != "route_master" or "ref" not in tags:
 				continue
 			routes = filter(lambda m: m[0] in self.relations and m[1] == "relation", members)
 			routes = map(lambda m: self.relations[m[0]], routes)
 			pairs = []
 			for i in range(0, len(routes)):
+				if not "from" in routes[i][1] or not "to" in routes[i][1]:
+					continue
 				for j in range(i + 1, len(routes)):
+					if not "from" in routes[j][1] or not "to" in routes[j][1]:
+						continue
 					if routes[i][1]['from'] == routes[j][1]['to'] and routes[i][1]['to'] == routes[j][1]['from']:
 						pairs.append((routes[i], routes[j]))
+			if len(pairs) == 0:
+				# only output routes of route_masters that have matching from and to
+				continue
+
+			output += (70 * "=") + "\n"
+			output += (tags["name"] if "name" in tags else "") + (" (%i)\n" % rid)
+			output += "\n"
+
 			for pair in pairs:
 				rid1, tags, members = pair[0]
-				stops1 = filter(lambda m: re.match("^(stop|platform)$", m[2]), members)
+				stops1 = filter(lambda m: re.match(self.route_node_roles_pattern, m[2]), members)
 				stops1 = map(lambda s: s[0], stops1)
 				rid2, tags, members = pair[1]
-				stops2 = filter(lambda m: re.match("^(stop|platform)$", m[2]), members)
+				stops2 = filter(lambda m: re.match(self.route_node_roles_pattern, m[2]), members)
 				stops2 = map(lambda s: s[0], stops2)
 				stops2.reverse()
+
+				output += "(%i, %i)\n" % (rid1, rid2)
+				output += "\n"
+
 				# collect names
 				names1 = []
 				names2 = []
+				changes = {}
 				for s in stops1:
 					if s in self.nodes and self.nodes[s] != None:
 						nid, tags, coords= self.nodes[s]
-						if "name" in tags and tags["name"] not in names1:
-							names1.append(tags["name"])
+						if "name" in tags:
+							if tags["name"] not in names1:
+								names1.append(tags["name"])
+							if tags["name"] not in changes:
+								changes[tags["name"]] = []
+							for p in self.parents[("node", nid)]:
+								if p[0] != "relation":
+									continue
+								# TODO: check if not available?
+								r = self.relations[p[1]]
+								if "ref" in r[1] and r[1]["ref"] != relation[1]["ref"] and r[1]["ref"] not in changes[tags["name"]]:
+									changes[tags["name"]].append(r[1]["ref"])
+							
 				for s in stops2:
 					if s in self.nodes and self.nodes[s] != None:
 						nid, tags, coords= self.nodes[s]
-						if "name" in tags and tags["name"] not in names2:
-							names2.append(tags["name"])
+						if "name" in tags:
+							if tags["name"] not in names2:
+								names2.append(tags["name"])
+							if tags["name"] not in changes:
+								changes[tags["name"]] = []
+							for p in self.parents[("node", nid)]:
+								if p[0] != "relation":
+									continue
+								# TODO: check if not available?
+								r = self.relations[p[1]]
+								if "ref" in r[1] and r[1]["ref"] != relation[1]["ref"] and r[1]["ref"] not in changes[tags["name"]]:
+									changes[tags["name"]].append(r[1]["ref"])
 
 				i = 0;
 				j = 0;
 				while i < len(names1) or j < len(names2):
+					# TODO: logic correct??
 					if i == len(names1):
 						symbol = u"▲"
-						print "%s %s" % (symbol, names2[j])
+						name = names2[j]
 						j += 1
 					elif j == len(names2):
 						symbol = u"▼"
-						print "%s %s" % (symbol, names2[j])
+						name = names1[i]
 						i += 1
 					elif names1[i] == names2[j]:
 						symbol = u"●"
-						print "%s %s" % (symbol, names1[i])
+						name = names1[i]
 						i += 1
 						j += 1
 					elif not names1[i] in names2:
 						symbol = u"▼"
-						print "%s %s" % (symbol, names1[i])
+						name = names1[i]
 						i += 1
-						continue
 					else:
 						symbol = u"▲"
-						print "%s %s" % (symbol, names2[j])
+						name = names2[j]
 						j += 1
+					if len(changes[name]) > 0:
+						output += "%s %s [%s]\n" % (symbol, name, ", ".join(sorted(changes[name])))
+					else:
+						output += "%s %s\n" % (symbol, name)
+				output += "\n"
+		print output
 
