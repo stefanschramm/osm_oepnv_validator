@@ -129,6 +129,8 @@ input {
 <a href="http://www.openstreetmap.org/?relation=${l['osmid'] | h}" title="view">v</a>
 <a href="http://www.overpass-api.de/api/sketch-line?ref=${l['ref'] | h}&amp;network=VBB&amp;style=wuppertal" title="Sketch Line">s</a>
 <a href="http://osmrm.openstreetmap.de/gpx.jsp?relation=${l['osmid'] | h}" title="GPX">g</a>
+
+<a href="http://osm.kesto.de/rnc/?r=${l['osmid'] | h}&p=/^(stop:[0-9]+|stop|forward:stop:[0-9]+|backward:stop:[0-9]+|platform:[0-9]+|platform)$$/">n</a>
 				</td>
 				<td>${l['type'] | h}</td>
 				<td>${l['route_master'] | h}</td>
