@@ -65,6 +65,7 @@ class PublicTransportNetwork:
 	route_master_validators = []
 
 	pbf = ""
+	mtime = None
 
 	# the interesting objects are stored in these 3 dicts:
 
@@ -102,7 +103,6 @@ class PublicTransportNetwork:
 				self.relations[rid] = relation
 				for member in members:
 					mid, typ, role = member
-					# TODO: put nodes and ways also in self.parents; would be useful for printing "other connections from this station"
 					if typ == "node":
 						self.nodes[mid] = None
 					if typ == "way":
@@ -175,7 +175,7 @@ class PublicTransportNetwork:
 		# check if all passed ways are connected
 		edges = {}
 		nodes = []
-		# build a connectivity (edge) matrix for all nodes in all ways
+		# build a connectivity (edge) matrix for all nodes in all (non-platform-)ways
 		for way in ways:
 			node_prev = None
 			if way not in self.ways or self.ways[way] == None:
@@ -197,11 +197,10 @@ class PublicTransportNetwork:
 			# no ways contained
 			return True
 		if len(nodes) > 900:
-			# no many nodes, would raise exception because of recursion
+			# to many nodes, would raise exception because of recursion
 			# TODO: implement better connectivity check
 			return None
 		# start dfs to check if all nodes are reachable from each other
-		# print "Ways: " + str(ways)
 		reached_nodes = self.dfs(nodes[0], edges, [])
 		not_reached = set(nodes).difference(set(reached_nodes))
 		return len(not_reached) == 0
@@ -238,6 +237,7 @@ class PublicTransportNetwork:
 			if tags["route_master"] not in self.valid_route_master_values:
 				errors.append(("unexpected_value", "unexpected value for key route_master. expecting route_master=(%s)." % "|".join(self.valid_route_master_values)))
 
+		# run validators defined in child-class
 		for v in self.route_master_validators:
 			errors.extend(v(relation))
 
@@ -248,8 +248,9 @@ class PublicTransportNetwork:
 		rid, tags, members = relation
 
 		# invalid keys
-		if "route_master" in tags:
-			errors.append(("unexpected_key", "unexpected key: route_master in route relation"))
+		for i in self.invalid_keys_route:
+			if i in tags:
+				errors.append(("unexpected_key", "unexpected key: %s in route relation" % i))
 
 		# missing tags
 		if "name" not in tags:
@@ -271,7 +272,7 @@ class PublicTransportNetwork:
 			for member in members:
 				mid, typ, role = member
 				if typ == "way" and re.match(self.route_way_roles_pattern, role):
-					# only collect ways without role - others might be (not-connected) platforms
+					# (ways like platforms will be ignored due to route_way_roles_pattern)
 					ways.append(mid)
 				if typ == "node":	
 					has_node = True
@@ -284,8 +285,10 @@ class PublicTransportNetwork:
 					errors.append(("disconnected_ways", "ways of route are not completely connected (or have strange roles)"))
 				# (if validate_connectivity returns None, we can't validate this route because parts of it are outside of our pbf-file)
 			if not has_node:
+				# TODO: this would be OK, if all stops are modeled as relations
 				errors.append(("no_nodes", "route without nodes (stops missing?)"))
 
+		# run validators defined in child-class
 		for v in self.route_validators:
 			errors.extend(v(relation))
 
@@ -306,6 +309,8 @@ class PublicTransportNetwork:
 			main_key = key.split(":")[0]
 			if not main_key in self.valid_keys:
 				errors.append(("unknown_key", "unknown key: %s" % key))
+
+		# do validation depending on type of route 
 
 		if tags["type"] == "route_master":
 			errors.extend(self.validate_route_master(relation))
@@ -328,17 +333,23 @@ class PublicTransportNetwork:
 				continue
 			parent_id, parent_tags, parent_members = self.relations[p[1]]
 			if "ref" in parent_tags and parent_tags["ref"] == tags["ref"] and "type" in parent_tags and parent_tags["type"] == "route_master":
-				# has correct route_master
+				# has correct route_master (same ref)
 				return False
 		# no correct parent: missing route_master
 		return True
 
 	def load_network(self, pbf="berlin.osm.pbf"):
 
+		# read data of public transport network
+		# required for validating and displaying
+
 		self.pbf = pbf
 
+		# get modification time of data source
+		selfmtime = datetime.datetime.fromtimestamp(os.stat(self.pbf)[stat.ST_MTIME])
+
 		# first pass:
-		# collect all relations that should be validated
+		# collect all interesting relations
 		print "Collecting relations..."
 		p = OSMParser(concurrency=4, relations_callback=self.relations_cb)
 		p.parse(pbf)
@@ -349,7 +360,7 @@ class PublicTransportNetwork:
 		p = OSMParser(concurrency=4, ways_callback=self.ways_cb)
 		p.parse(pbf)
 
-		# collect nodes for these ways
+		# collect nodes for collected relations and ways
 		print "Collecting %i nodes..." % len(self.nodes)
 		p = OSMParser(concurrency=4, nodes_callback=self.nodes_cb)
 		p.parse(pbf)
@@ -377,11 +388,9 @@ class PublicTransportNetwork:
 			l['nodes'] = members['node']
 			lines_tpl.append(l)
 
-		mtime = datetime.datetime.fromtimestamp(os.stat(self.pbf)[stat.ST_MTIME])
-
 		# write template
 		tpl = Template(filename=template, default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace')
-		content = tpl.render(lines=lines_tpl, mtime=mtime, region=self.text_region, filter=self.text_filter, datasource=self.text_datasource)
+		content = tpl.render(lines=lines_tpl, mtime=self.mtime, region=self.text_region, filter=self.text_filter, datasource=self.text_datasource)
 		f = open(output, 'w')
 		f.write(content)
 		f.close()
@@ -408,20 +417,25 @@ class PublicTransportNetwork:
 				stations.append(self.nodes[mid])
 			lines.append([rid, tags, stations])
 
-		mtime = datetime.datetime.fromtimestamp(os.stat(self.pbf)[stat.ST_MTIME])
-
 		# write template
 		tpl = Template(filename=template, default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace')
-		content = tpl.render(lines=lines, mtime=mtime, region=self.text_region, filter=self.text_filter, datasource=self.text_datasource)
+		content = tpl.render(lines=lines, mtime=self.mtime, region=self.text_region, filter=self.text_filter, datasource=self.text_datasource)
 		f = open(output, 'w')
 		f.write(content)
 		f.close()
 
-	def print_master_routes(self, target_dir="lines"):
+	def print_master_routes(self, filterfunction=lambda m: True, target_dir="lines"):
+
+		# print list of stations of a route
+		# within the directions of a route the stations are identified by their name
+		# (which will cause problems in routes like M1 having "U Oranienburger Tor" 2 times)
+
 		output = ""
                 for relation in sorted(self.relations.values(), key=self.get_sortkey):
 			rid, tags, members = relation
 			if "type" not in tags or tags["type"] != "route_master" or "ref" not in tags:
+				continue
+			if not filterfunction(relation):
 				continue
 			routes = filter(lambda m: m[0] in self.relations and m[1] == "relation", members)
 			routes = map(lambda m: self.relations[m[0]], routes)
