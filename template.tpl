@@ -37,6 +37,10 @@ function init() {
 	$('input.checkbox').each(function(index, checkbox) {
 		checkCheckbox(checkbox);
 	});
+        $('tr').bind('click', function(ev) {
+                dbg = ev.target;
+                $(ev.target.parentElement).toggleClass('selected');
+        });
 }
 
 $(document).ready(init);
@@ -67,6 +71,9 @@ ul {
 a {
 	text-decoration: none;
 }
+input {
+	display: none;
+}
 .right {
 	text-align: right;
 }
@@ -79,8 +86,8 @@ a {
 .nowrap {
 	white-space: nowrap;
 }
-input {
-	display: none;
+.selected {
+	background-color: #ddd;
 }
 	</style>
 </head>
