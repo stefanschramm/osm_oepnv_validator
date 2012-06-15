@@ -370,6 +370,36 @@ class PublicTransportNetwork:
 
 		print "Done."
 
+	def draw_station_network(self, filterfunction=lambda r: "route" in r[1] and r[1]["route"] in ["subway",  "light_rail"], template="network.tpl", output="sunetz.htm"):
+		lines = []
+		for line in self.lines:
+			osmid, tags, members = line
+			if "type" not in tags or tags["type"] != "route":
+				# ignore route_master, only print individual routes
+				continue
+			if not filterfunction (line):
+				continue
+			stations = []
+			for member in members:
+				osmid_member, typ, role = member
+				if typ != "node" or not re.match(self.route_node_roles_pattern, role):
+					continue
+				# osmid_member, tags, coords = self.g[osmid_member]
+				if not osmid_member in self.g:
+					# station hasn't been collected - probably not in pbf
+					continue
+				stations.append(self.g[osmid_member])
+			line = [osmid, tags, stations]
+			lines.append(line)
+		# print lines
+		mtime = datetime.datetime.fromtimestamp(os.stat(self.pbf)[stat.ST_MTIME])
+		# write template
+		tpl = Template(filename=template, default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace')
+		content = tpl.render(lines=lines, mtime=mtime, region=self.text_region, filter=self.text_filter, datasource=self.text_datasource)
+		f = open(output, 'w')
+		f.write(content)
+		f.close()
+
 	def draw_lines(self, target_dir="lines"):
                 for line in sorted(self.lines, key=self.get_sortkey):
 			osmid, tags, members = line
