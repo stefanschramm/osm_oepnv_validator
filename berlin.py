@@ -41,7 +41,7 @@ class PublicTransportNetworkBerlin(PublicTransportNetwork):
 		# defines which relations are excluded from validation
 		osmid, tags, members = relation
 		# don't try to validate "...linien in Berlin"-relations
-		return osmid in [18812, 174283, 53181]
+		return osmid in [18812, 174283, 53181, 174255]
 
 	def validate_name(self, relation):
 		osmid, tags, members = relation
