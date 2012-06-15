@@ -36,9 +36,12 @@ from berlin import PublicTransportNetworkBerlin
 def main():
 	net = PublicTransportNetworkBerlin()
 	if len(sys.argv) == 4:
-		net.create_report(pbf=sys.argv[1], template=sys.argv[2], output=sys.argv[3])
+		net.load_network(pbf=sys.argv[1])
+		net.create_report(template=sys.argv[2], output=sys.argv[3])
 	else:
-		net.create_report(pbf="berlin.osm.pbf", template="template.tpl", output="berlin.htm")
+		net.load_network(pbf="berlin.osm.pbf")
+		net.create_report(template="template.tpl", output="berlin.htm")
+		# net.draw_lines()
 	#net = PublicTransportNetworkHamburg()
 	#net.create_report(pbf="hamburg.osm.pbf", template="template.tpl", output="hamburg.htm")
 	#net = PublicTransportNetworkDresden()
