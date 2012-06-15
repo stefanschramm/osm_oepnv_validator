@@ -41,13 +41,22 @@ def main():
 	else:
 		net.load_network(pbf="berlin.osm.pbf")
 		net.create_report(template="template.tpl", output="berlin.htm")
+
+		# experimental: create html files containing an openlayers map of the network
+		# net.draw_station_network()
+		# draw tram network:
+		# net.draw_station_network(filterfunction=lambda r: "route" in r[1] and r[1]["route"] == "tram" ,output="tram.htm")
+		# draw M-bus network:
+		# net.draw_station_network(filterfunction=lambda r: "route" in r[1] and r[1]["route"] == "bus" and "ref" in r[1] and re.match("^M[0-9]+$", r[1]["ref"]), output="mbus.htm")
 		# net.draw_lines()
-	#net = PublicTransportNetworkHamburg()
-	#net.create_report(pbf="hamburg.osm.pbf", template="template.tpl", output="hamburg.htm")
-	#net = PublicTransportNetworkDresden()
-	#net.create_report(pbf="sachsen.osm.pbf", template="template.tpl", output="dresden.htm")
-	#net = PublicTransportNetworkLeipzig()
-	#net.create_report(pbf="sachsen.osm.pbf", template="template.tpl", output="leipzig.htm")
+
+	# other regions - highly experimental
+	# net = PublicTransportNetworkHamburg()
+	# net.create_report(pbf="hamburg.osm.pbf", template="template.tpl", output="hamburg.htm")
+	# net = PublicTransportNetworkDresden()
+	# net.create_report(pbf="sachsen.osm.pbf", template="template.tpl", output="dresden.htm")
+	# net = PublicTransportNetworkLeipzig()
+	# net.create_report(pbf="sachsen.osm.pbf", template="template.tpl", output="leipzig.htm")
 
 if __name__ == '__main__':
 	main()
