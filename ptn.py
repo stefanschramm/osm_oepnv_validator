@@ -66,13 +66,26 @@ class PublicTransportNetwork:
 
 	pbf = ""
 
-	lines = []
+	# the interesting objects are stored in these 3 dicts:
+
+	# dict of relations; index: relation id
+	# each relation consists of (relation_id, tags, members)
+	# where members consists of (member_id, member_type, role)
 	relations = {}
+
+	# dict of ways; index: way id
+	# each way consists of (way_id, tags, node_ids)
 	ways = {}
+
+	# dict of nodes; index: node id
+	# each node consists of (node_id, tags, coordinates)
 	nodes = {}
+
+	# additionally information about parent-relations is collected:
+	# dict of parent relations; index: id of relation to get parent relations for
 	parents = {}
 
-	# parent classes:
+	# child classes need to implement:
 	# def relation_filter(self, relation)
 	# - defines which relations to validate
 
@@ -84,40 +97,39 @@ class PublicTransportNetwork:
 	def relations_cb(self, relations):
 		# callback: collect routes to validate
 		for relation in relations:
-			osmid, tags, members = relation
+			rid, tags, members = relation
 			if self.relation_filter(relation):
-				self.lines.append(relation)
-				osmid, tags, members = relation
-				self.relations[osmid] = relation
+				self.relations[rid] = relation
 				for member in members:
-					osmid_member, typ, role = member
+					mid, typ, role = member
 					if typ == "node":
-						self.nodes[osmid_member] = None
+						self.nodes[mid] = None
 					if typ == "way":
-						self.ways[osmid_member] = None
+						self.ways[mid] = None
 					if typ == "relation":
-						if osmid_member not in self.parents:
-							self.parents[osmid_member] = [osmid]
+						if mid not in self.parents:
+							self.parents[mid] = [rid]
 						else:
-							self.parents[osmid_member].append(osmid)
+							self.parents[mid].append(rid)
 
 	def ways_cb(self, ways):
 		# callback: collect interesting ways
 		for way in ways:
-			osmid, tags, nodes = way
-			if osmid in self.ways and self.ways[osmid] == None:
-				self.ways[osmid] = nodes # TODO: collect complete way instead of node-ids
-				# self.interesting_nodes.extend(nodes)
+			wid, tags, nodes = way
+			if wid in self.ways and self.ways[wid] == None:
+				self.ways[wid] = way
+				for nid in nodes:
+					self.nodes[nid] = None
 
 	def nodes_cb(self, nodes):
 		# callback: collect interesting nodes
 		for node in nodes:
-			osmid, tags, coords = node
-			if osmid in self.nodes and self.nodes[osmid] == None:
-				self.nodes[osmid] = node
+			nid, tags, coords = node
+			if nid in self.nodes and self.nodes[nid] == None:
+				self.nodes[nid] = node
 
-	def get_sortkey(self, line):
-		osmid, tags, members = line
+	def get_sortkey(self, relation):
+		rid, tags, members = relation
 		key = ""
 		if "route_master" in tags:
 			key += tags["route_master"]
@@ -134,10 +146,10 @@ class PublicTransportNetwork:
 
 	def count_member_types(self, relation):
 		# count how many members of each type the relation has
-		osmid, tags, members = relation
+		rid, tags, members = relation
 		types = {'relation': 0, 'node': 0, 'way': 0}
 		for member in members:
-			osmid_member, typ, role = member
+			mid, typ, role = member
 			types[typ] += 1
 		return types
 
@@ -162,7 +174,7 @@ class PublicTransportNetwork:
 			node_prev = None
 			if way not in self.ways or self.ways[way] == None:
 				return None # unable to validate - way not in pbf
-			for node in self.ways[way]:
+			for node in self.ways[way][2]:
 				nodes.append(node)
 				if node_prev != None:
 					if node_prev not in edges:
@@ -188,9 +200,9 @@ class PublicTransportNetwork:
 		not_reached = set(nodes).difference(set(reached_nodes))
 		return len(not_reached) == 0
 
-	def validate_route_master(self, line):
+	def validate_route_master(self, relation):
 		errors = []
-		osmid, tags, members = line
+		rid, tags, members = relation
 
 		# invalid keys
 		for i in self.invalid_keys_route_master:
@@ -202,10 +214,10 @@ class PublicTransportNetwork:
 			errors.append("route_master without members")
 		else:
 			for member in members:
-				osmid_member, typ, role = member
+				mid, typ, role = member
 				if typ == "relation":
-					if osmid_member not in self.relations:
-						errors.append(("unknown_member", "member id %i not found (missing network and/or operator tag?)" % osmid_member))
+					if mid not in self.relations:
+						errors.append(("unknown_member", "member id %i not found (missing network and/or operator tag?)" % mid))
 				else:
 					errors.append(("wrong_member", "route_master with non-relation member"))
 
@@ -221,13 +233,13 @@ class PublicTransportNetwork:
 				errors.append(("unexpected_value", "unexpected value for key route_master. expecting route_master=(%s)." % "|".join(self.valid_route_master_values)))
 
 		for v in self.route_master_validators:
-			errors.extend(v(line))
+			errors.extend(v(relation))
 
 		return errors
 
-	def validate_route(self, line):
+	def validate_route(self, relation):
 		errors = []
-		osmid, tags, members = line
+		rid, tags, members = relation
 
 		# invalid keys
 		if "route_master" in tags:
@@ -251,10 +263,10 @@ class PublicTransportNetwork:
 			has_node = False
 			ways = []
 			for member in members:
-				osmid_member, typ, role = member
+				mid, typ, role = member
 				if typ == "way" and re.match(self.route_way_roles_pattern, role):
 					# only collect ways without role - others might be (not-connected) platforms
-					ways.append(osmid_member)
+					ways.append(mid)
 				if typ == "node":	
 					has_node = True
 					if not re.match(self.route_node_roles_pattern, role):
@@ -269,19 +281,19 @@ class PublicTransportNetwork:
 				errors.append(("no_nodes", "route without nodes (stops missing?)"))
 
 		for v in self.route_validators:
-			errors.extend(v(line))
+			errors.extend(v(relation))
 
 		return errors
 
-	def validate(self, line):
+	def validate(self, relation):
 		# validate passed line
 
-		osmid, tags, members = line
+		rid, tags, members = relation
 		errors = []
 
-		print "Validating line %s..." % osmid
+		print "Validating line %s..." % rid
 
-		if self.ignore_relation(line):
+		if self.ignore_relation(relation):
 			return [("ignored", "(ignoring this relation)")]
 
 		for key in tags:
@@ -290,23 +302,23 @@ class PublicTransportNetwork:
 				errors.append(("unknown_key", "unknown key: %s" % key))
 
 		if tags["type"] == "route_master":
-			errors.extend(self.validate_route_master(line))
+			errors.extend(self.validate_route_master(relation))
 
 		if tags["type"] == "route":
-			errors.extend(self.validate_route(line))
+			errors.extend(self.validate_route(relation))
 
 		return set(errors)
 
-	def no_route_master(self, line):
-		osmid, tags, members = line
+	def no_route_master(self, relation):
+		rid, tags, members = relation
 		if not "route" in tags:
 			# seems to be route master or something else
 			return False
-		if not osmid in self.parents:
+		if not rid in self.parents:
 			# route without route_master
 			return True
-		for p in self.parents[osmid]:
-			parent_osmid, parent_tags, parent_members = self.relations[p]
+		for p in self.parents[rid]:
+			parent_id, parent_tags, parent_members = self.relations[p]
 			if "ref" in parent_tags and parent_tags["ref"] == tags["ref"] and "type" in parent_tags and parent_tags["type"] == "route_master":
 				# has correct route_master
 				return False
@@ -317,8 +329,6 @@ class PublicTransportNetwork:
 
 		self.pbf = pbf
 
-		# (doing 2 parses because this tooks less memory+time than collecting everything in a single parse)
-
 		# first pass:
 		# collect all relations that should be validated
 		print "Collecting relations..."
@@ -326,10 +336,14 @@ class PublicTransportNetwork:
 		p.parse(pbf)
 
 		# second pass:
-		# collect ways for these relations for performing a connectivity check
-		# collect nodes too
-		print "Collecting %i ways and %i nodes..." % (len(self.ways), len(self.nodes))
-		p = OSMParser(concurrency=4, ways_callback=self.ways_cb, nodes_callback=self.nodes_cb)
+		# collect ways for these relations
+		print "Collecting %i ways..." % len(self.ways)
+		p = OSMParser(concurrency=4, ways_callback=self.ways_cb)
+		p.parse(pbf)
+
+		# collect nodes for these ways
+		print "Collecting %i nodes..." % len(self.nodes)
+		p = OSMParser(concurrency=4, nodes_callback=self.nodes_cb)
 		p.parse(pbf)
 
 	def create_report(self, template="template.tpl", output="lines.htm"):
@@ -338,18 +352,18 @@ class PublicTransportNetwork:
 
 		# create list that contains all important information for usage in template
 		lines_tpl = []
-		for line in sorted(self.lines, key=self.get_sortkey):
-			osmid, tags, members = line
+		for relation in sorted(self.relations.values(), key=self.get_sortkey):
+			rid, tags, members = relation
 			l = {}
-			l['osmid'] = osmid
+			l['osmid'] = rid
 			l["fixme"] = ""
 			for tag in ['type', 'route', 'route_master', 'color', 'ref', 'name', 'note', 'fixme']:
 				l[tag] = tags[tag] if tag in tags else ""
 			if "FIXME" in tags:
 				l["fixme"] += tags["FIXME"]
-			l['errors'] = self.validate(line)
-			l['noroutemaster'] = self.no_route_master(line)
-			members = self.count_member_types(line)
+			l['errors'] = self.validate(relation)
+			l['noroutemaster'] = self.no_route_master(relation)
+			members = self.count_member_types(relation)
 			l['relations'] = members['relation']
 			l['ways'] = members['way']
 			l['nodes'] = members['node']
@@ -368,27 +382,26 @@ class PublicTransportNetwork:
 
 	def draw_station_network(self, filterfunction=lambda r: "route" in r[1] and r[1]["route"] in ["subway",  "light_rail"], template="network.tpl", output="sunetz.htm"):
 		lines = []
-		for line in self.lines:
-			osmid, tags, members = line
+		for relation in self.relations.values():
+			rid, tags, members = relation
 			if "type" not in tags or tags["type"] != "route":
 				# ignore route_master, only print individual routes
 				continue
-			if not filterfunction (line):
+			if not filterfunction(relation):
 				continue
 			stations = []
 			for member in members:
-				osmid_member, typ, role = member
+				mid, typ, role = member
 				if typ != "node" or not re.match(self.route_node_roles_pattern, role):
 					continue
-				# osmid_member, tags, coords = self.nodes[osmid_member]
-				if not osmid_member in self.nodes:
+				if not mid in self.nodes or self.nodes[mid] == None:
 					# station hasn't been collected - probably not in pbf
 					continue
-				stations.append(self.nodes[osmid_member])
-			line = [osmid, tags, stations]
-			lines.append(line)
-		# print lines
+				stations.append(self.nodes[mid])
+			lines.append([rid, tags, stations])
+
 		mtime = datetime.datetime.fromtimestamp(os.stat(self.pbf)[stat.ST_MTIME])
+
 		# write template
 		tpl = Template(filename=template, default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace')
 		content = tpl.render(lines=lines, mtime=mtime, region=self.text_region, filter=self.text_filter, datasource=self.text_datasource)
@@ -397,8 +410,8 @@ class PublicTransportNetwork:
 		f.close()
 
 	def draw_lines(self, target_dir="lines"):
-                for line in sorted(self.lines, key=self.get_sortkey):
-			osmid, tags, members = line
+                for relation in sorted(self.relations.values(), key=self.get_sortkey):
+			rid, tags, members = relation
 			if "type" not in tags or tags["type"] != "route_master":
 				continue
 			routes = filter(lambda m: m[0] in self.relations and m[1] == "relation", members)
@@ -409,10 +422,10 @@ class PublicTransportNetwork:
 					if routes[i][1]['from'] == routes[j][1]['to'] and routes[i][1]['to'] == routes[j][1]['from']:
 						pairs.append((routes[i], routes[j]))
 			for pair in pairs:
-				osmid, tags, members = pair[0]
+				rid1, tags, members = pair[0]
 				stops1 = filter(lambda m: re.match("^(stop|platform)$", m[2]), members)
 				stops1 = map(lambda s: s[0], stops1)
-				osmid, tags, members = pair[1]
+				rid2, tags, members = pair[1]
 				stops2 = filter(lambda m: re.match("^(stop|platform)$", m[2]), members)
 				stops2 = map(lambda s: s[0], stops2)
 				stops2.reverse()
@@ -420,13 +433,13 @@ class PublicTransportNetwork:
 				names1 = []
 				names2 = []
 				for s in stops1:
-					if s in self.nodes:
-						osmid_s, tags, coords= self.nodes[s]
+					if s in self.nodes and self.nodes[s] != None:
+						nid, tags, coords= self.nodes[s]
 						if "name" in tags and tags["name"] not in names1:
 							names1.append(tags["name"])
 				for s in stops2:
-					if s in self.nodes:
-						osmid_s, tags, coords= self.nodes[s]
+					if s in self.nodes and self.nodes[s] != None:
+						nid, tags, coords= self.nodes[s]
 						if "name" in tags and tags["name"] not in names2:
 							names2.append(tags["name"])
 
