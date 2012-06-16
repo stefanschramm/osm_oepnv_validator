@@ -3,12 +3,10 @@ Tools for validating OSM public transport relations in Berlin
 If you haven't installed mako and protobuf yet (in Debian Wheezy):
 apt-get install python-mako python-protobuf
 
-Download OSM data for Berlin from geofabrik.de:
-wget http://download.geofabrik.de/osm/europe/germany/berlin.osm.pbf
+Download OSM data for Berlin from geofabrik.de into data/ director:
+wget http://download.geofabrik.de/osm/europe/germany/berlin.osm.pbf -O data/berlin.osm.pbf
 
-Start validation/overview script:
-./validate.py berlin.osm.pbf template.tpl berlin.htm
+Start overview generation script with profile "berlin":
+./generate_overview.py berlin
 
-
-This stuff might change soon... currently everything is work in progress.
-
+The generated files can be found in the output/ directory.
