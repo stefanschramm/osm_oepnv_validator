@@ -424,11 +424,13 @@ class PublicTransportNetwork:
 		f.write(content)
 		f.close()
 
-	def print_master_routes(self, filterfunction=lambda m: True, target_dir="lines"):
+	def print_master_routes(self, filterfunction=lambda m: True, template="routes.tpl", output="routes.htm"):
 
 		# print list of stations of a route
 		# within the directions of a route the stations are identified by their name
 		# (which will cause problems in routes like M1 having "U Oranienburger Tor" 2 times)
+
+		# TODO: use template instead of output to console
 
 		output = ""
                 for relation in sorted(self.relations.values(), key=self.get_sortkey):
