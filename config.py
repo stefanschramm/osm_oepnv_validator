@@ -12,6 +12,7 @@ template_dir = script_path + "/templates"
 
 profiles = {
 	'berlin': {
+		'shortname': 'berlin',
 		'name': "Berlin (BVG + S-Bahn Berlin GmbH)",
 		'rules': rulesets.berlin.PublicTransportNetworkBerlin,
 		'filter': lambda r: "network" in r[1] \
@@ -20,6 +21,7 @@ profiles = {
 				and (r[1]["operator"] == "BVG" or r[1]["operator"] == "S-Bahn Berlin GmbH") \
 				and "type" in r[1] \
 				and r[1]["type"] in ["route", "route_master"],
+		'filter_text': 'All route and route_master relations with network=VBB and (operator=BVG or operator=S-Bahn Berlin GmbH)',
 		'datasource': 'berlin.osm.pbf',
 		'maps': {
 			# 'internal name': ('readable name', filter function)
@@ -32,6 +34,7 @@ profiles = {
 		}
 	},
 	'vbb': {
+		'shortname': 'vbb',
 		'rules': rulesets.berlin.PublicTransportNetworkBerlin,
 #		'filter': lambda r: "network" in r[1] \
 #				and r[1]["network"] == "VBB" \
@@ -48,6 +51,7 @@ profiles = {
 		}
 	},
 	'no_vbb': {
+		'shortname': 'no_vbb',
 		'rules': rulesets.berlin.PublicTransportNetworkBerlin,
 		'filter': lambda r: ("network" not in r[1] \
 				or r[1]["network"] != "VBB") \

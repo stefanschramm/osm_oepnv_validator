@@ -25,6 +25,7 @@ import stat
 import datetime
 from imposm.parser import OSMParser
 from mako.template import Template
+from mako.lookup import TemplateLookup
 
 # required dependencies:
 # sudo apt-get install python-imposm
@@ -56,20 +57,23 @@ class PublicTransportNetwork:
 	# http://wiki.openstreetmap.org/wiki/Relation:route#Members
 	route_way_roles_pattern = "^(|route|forward|backward|platform:[0-9]+|platform)$"
 
-
-	text_region = ""
-	text_filter = ""
-	text_datasource = ""
-
 	route_validators = []
 	route_master_validators = []
 
-	profile = None
+	# dummy profile
+	profile = {
+		'name': '',
+		'filter_text': '',
+		'datasource': '',
+		'maps': {}
+	}
+
 	pbf = ""
 	mtime = None
 	relation_filter = lambda r: True
+	makolookup = TemplateLookup(directories=[os.path.dirname(__file__) + '/templates/mapper'])
 
-	# the interesting objects are stored in these 3 dicts:
+	# the interesting objects will be stored in these 3 dicts:
 
 	# dict of relations; index: relation id
 	# each relation consists of (relation_id, tags, members)
@@ -102,7 +106,7 @@ class PublicTransportNetwork:
 		self.relation_filter = filterfunction
 
 		# get modification time of data source
-		selfmtime = datetime.datetime.fromtimestamp(os.stat(self.pbf)[stat.ST_MTIME])
+		self.mtime = datetime.datetime.fromtimestamp(os.stat(self.pbf)[stat.ST_MTIME])
 
 		# first pass:
 		# collect all interesting relations
@@ -179,15 +183,13 @@ class PublicTransportNetwork:
 			lines_tpl.append(l)
 
 		# write template
-		tpl = Template(filename=template, default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace')
-		content = tpl.render(lines=lines_tpl, mtime=self.mtime, region=self.text_region, filter=self.text_filter, datasource=self.text_datasource)
+		tpl = Template(filename=template, default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace', lookup=self.makolookup)
+		content = tpl.render(lines=lines_tpl, mtime=self.mtime, profile=self.profile)
 		f = open(output, 'w')
 		f.write(content)
 		f.close()
 
-		print "Done."
-
-	def create_network_map(self, template, output, filterfunction=lambda r: True):
+	def create_network_map(self, template, output, mapkey="", filterfunction=lambda r: True):
 		lines = []
 		for relation in self.relations.values():
 			rid, tags, members = relation
@@ -208,8 +210,8 @@ class PublicTransportNetwork:
 			lines.append([rid, tags, stations])
 
 		# write template
-		tpl = Template(filename=template, default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace')
-		content = tpl.render(lines=lines, mtime=self.mtime, region=self.text_region, filter=self.text_filter, datasource=self.text_datasource)
+		tpl = Template(filename=template, default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace', lookup=self.makolookup)
+		content = tpl.render(lines=lines, mtime=self.mtime, profile=self.profile, mapkey=mapkey)
 		f = open(output, 'w')
 		f.write(content)
 		f.close()
@@ -346,19 +348,19 @@ class PublicTransportNetwork:
 			})
 
 		# write template
-		tpl = Template(filename=template, default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace')
-		content = tpl.render(lines=lines, mtime=self.mtime, region=self.text_region, filter=self.text_filter, datasource=self.text_datasource)
+		tpl = Template(filename=template, default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace', lookup=self.makolookup)
+		content = tpl.render(lines=lines, mtime=self.mtime, profile=self.profile)
 		f = open(output, 'w')
 		f.write(content)
 		f.close()
 
 	def validate(self, relation):
-		# validate passed line
+		# validate passed route/route_master
 
 		rid, tags, members = relation
 		errors = []
 
-		print "Validating line %s..." % rid
+		print "Validating %s..." % rid
 
 		if self.ignore_relation(relation):
 			return [("ignored", "(ignoring this relation)")]
@@ -413,7 +415,7 @@ class PublicTransportNetwork:
 			if tags["route_master"] not in self.valid_route_master_values:
 				errors.append(("unexpected_value", "unexpected value for key route_master. expecting route_master=(%s)." % "|".join(self.valid_route_master_values)))
 
-		# run validators defined in child-class
+		# run validators defined by child-class
 		for v in self.route_master_validators:
 			errors.extend(v(relation))
 
@@ -464,7 +466,7 @@ class PublicTransportNetwork:
 				# TODO: this would be OK, if all stops are modeled as relations
 				errors.append(("no_nodes", "route without nodes (stops missing?)"))
 
-		# run validators defined in child-class
+		# run validators defined by child-class
 		for v in self.route_validators:
 			errors.extend(v(relation))
 
@@ -472,7 +474,7 @@ class PublicTransportNetwork:
 
 	def ignore_relation(self, relation):
 		# defines which relations are excluded from validation
-		# can be overridden in parent class if required
+		# can be overridden in child class if required
 		return False
 
 	def get_sortkey(self, relation):

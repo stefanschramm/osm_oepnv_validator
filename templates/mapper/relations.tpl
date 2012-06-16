@@ -20,7 +20,7 @@
 %>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-	<title>OSM ${region | h} Transportation Overview</title>
+	<title>OSM Relation Overview</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
 	<script type="text/javascript">
@@ -48,68 +48,12 @@ function init() {
 $(document).ready(init);
 
 	</script>
-	<style type="text/css">
-body,td {
-	font-family: sans-serif;
-	font-size: 8pt;
-	vertical-align: top;
-}
-table {
-	border-collapse: collapse
-}
-th {
-	background-color: #eee;
-	text-align: left;
-}
-th,td {
-	border: 1px solid #ccc;
-	padding: 1px;
-}
-ul {
-	list-style-position: outside;
-	padding: 0;
-	margin: 0 0 0 14px;
-}
-a {
-	text-decoration: none;
-}
-input {
-	display: none;
-}
-.right {
-	text-align: right;
-}
-.center {
-	text-align: center;
-}
-.monospace {
-	font-family: monospace;
-}
-.nowrap {
-	white-space: nowrap;
-}
-.selected {
-	background-color: #ddd;
-}
-.zebra1_master {
-	background: #3D7AB8
-}
-.zebra1_route {
-	background: #9FBFDF
-}
-.zebra2_master {
-	background: #62CB62
-}
-.zebra2_route {
-	background: #94DB94
-}
-	</style>
+	<link rel="stylesheet" type="text/css" href="style.css" />
 </head>
 <body>
-	<h1>OSM ${region | h} Transportation Overview</h1>
-	<p>${filter | h}</p>
+	<%include file="/header.tpl" args="page='relations'" />
 	<p>For relations which contain members outside of the data source no connectivity validation is done and member counts might be wrong.</p>
-	<p><strong>Data source:</strong> ${datasource | h}</p>
+	<p><strong>Data source:</strong> ${str(profile['datasource']) | h}</p>
 	<p><strong>Last update:</strong> ${mtime | h}</p>
 	<div><strong>Format:</strong> <input type="submit" value="no-wrap" onclick="$('td').css('white-space', 'nowrap'); return false;" /></div>
 	<div><strong>Error classes:</strong>
@@ -159,16 +103,7 @@ input {
 			<tr class="${trclass}">
 				<td class="right"><a href="http://www.openstreetmap.org/browse/relation/${l['osmid'] | h}">${l['osmid'] | h}</a></td>
 				<td class="nowrap">
-<a href="http://api.openstreetmap.org/api/0.6/relation/${l['osmid'] | h}" title="XML">x</a>
-<a href="http://ra.osmsurround.org/analyzeRelation?relationId=${l['osmid'] | h}" title="OSM Relation Analyzer">a</a>
-<a href="http://osmrm.openstreetmap.de/relation.jsp?id=${l['osmid'] | h}" title="OSM Route Manager">r</a>
-<a href="http://localhost:8111/import?url=http://api.openstreetmap.org/api/0.6/relation/${l['osmid'] | h}/full" title="JOSM">j</a>
-<a href="http://osm.virtuelle-loipe.de/history/?type=relation&amp;ref=${l['osmid'] | h}" title="OSM History Browser">h</a>
-<a href="http://www.openstreetmap.org/?relation=${l['osmid'] | h}" title="view">v</a>
-<a href="http://www.overpass-api.de/api/sketch-line?ref=${l['ref'] | h}&amp;network=VBB&amp;style=wuppertal" title="Sketch Line">s</a>
-<a href="http://osmrm.openstreetmap.de/gpx.jsp?relation=${l['osmid'] | h}" title="GPX">g</a>
-
-<a href="http://osm.kesto.de/rnc/?r=${l['osmid'] | h}&p=/^(stop:[0-9]+|stop|forward:stop:[0-9]+|backward:stop:[0-9]+|platform:[0-9]+|platform)$$/" title="Relation's Node Connector">n</a>
+					<%include file="/relationtools.tpl" args="osmid=l['osmid'], ref=l['ref']"/>
 				</td>
 				<td>${l['type'] | h}</td>
 				<td>${l['route_master'] | h}</td>

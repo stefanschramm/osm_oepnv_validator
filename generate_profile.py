@@ -44,7 +44,8 @@ def main():
 		print "Creating map %s..." % m
 		ptn.create_network_map(template=config.template_dir + "/mapper/map.tpl", \
 				output=config.output_dir + ("/%s_map_%s.htm" % (profile_name, m)), \
-				filterfunction=profile['maps'][m][1])
+				filterfunction=profile['maps'][m][1], \
+				mapkey=m)
 
 if __name__ == "__main__":
 	main()

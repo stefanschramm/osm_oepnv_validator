@@ -53,6 +53,7 @@ function init(){
 
 $(document).ready(init);
 	</script>
+	<link rel="stylesheet" type="text/css" href="style.css" />
 	<style type="text/css">
 #map {
 	width: 600px;
@@ -61,6 +62,8 @@ $(document).ready(init);
 	</style>
 </head>
 <body>
+<%include file="/header.tpl" args="page='map'" />
+<h2>${profile['maps'][mapkey][0]}</h2>
 <div id="map">
 </div>
 </body>
