@@ -33,20 +33,18 @@ def main():
 		ptn.load_network(pbf=config.data_dir + "/" + filename, \
 				filterfunction=profile['filter'])
 
-	# create relation overview
-	ptn.create_report(template=config.template_dir + "/mapper/relations.tpl", \
+	ptn.create_relation_overview(template=config.template_dir + "/mapper/relations.tpl", \
 			output=config.output_dir + ("/%s.htm" % profile_name))
 
-	# create line overview
-	ptn.create_line_overview(template=config.template_dir + "/mapper/lines.tpl",
+	ptn.create_route_list(template=config.template_dir + "/mapper/routes.tpl",
 			output=config.output_dir + ("/%s_lines.htm" % profile_name))
 
-	# create plan overviews
-	for plan in profile['plans']:
-		print "Creating plan %s..." % plan
-		ptn.draw_station_network(template=config.template_dir + "/mapper/network.tpl", \
-				output=config.output_dir + ("/%s_map_%s.htm" % (profile_name, plan)), \
-				filterfunction=profile['plans'][plan][1])
+	# create maps
+	for m in profile['maps']:
+		print "Creating map %s..." % m
+		ptn.create_network_map(template=config.template_dir + "/mapper/map.tpl", \
+				output=config.output_dir + ("/%s_map_%s.htm" % (profile_name, m)), \
+				filterfunction=profile['maps'][m][1])
 
 if __name__ == "__main__":
 	main()

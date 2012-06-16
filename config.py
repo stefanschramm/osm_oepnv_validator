@@ -21,7 +21,7 @@ profiles = {
 				and "type" in r[1] \
 				and r[1]["type"] in ["route", "route_master"],
 		'datasource': 'berlin.osm.pbf',
-		'plans': {
+		'maps': {
 			# 'internal name': ('readable name', filter function)
 			'sunetz': ("S+U-Bahn Netz", rulesets.berlin.is_s_or_u_bahn),
 			'strassenbahn': (u"Straßenbahn Netz", rulesets.berlin.is_normal_tram),
@@ -43,7 +43,7 @@ profiles = {
 				and r[1]["type"] in ["route", "route_master"]
 				and (not "operator" in r[1] or r[1]["operator"] not in ["BVG", "S-Bahn Berlin GmbH"]),
 		'datasource': ['berlin.osm.pbf'], # TODO: test germany.osm.pbf
-		'plans': {
+		'maps': {
 			'all': ("alle Linien", lambda r: True)
 		}
 	},
@@ -54,7 +54,7 @@ profiles = {
 				and "type" in r[1] \
 				and r[1]["type"] in ["route", "route_master"],
 		'datasource': ['berlin.osm.pbf'], # TODO: test germany.osm.pbf
-		'plans': {
+		'maps': {
 			'all': ("alle Linien", lambda r: True)
 		}
 	}

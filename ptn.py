@@ -155,7 +155,7 @@ class PublicTransportNetwork:
 				self.nodes[nid] = node
 
 
-	def create_report(self, template, output):
+	def create_relation_overview(self, template, output):
 
 		print "Validating relations..."
 
@@ -187,7 +187,7 @@ class PublicTransportNetwork:
 
 		print "Done."
 
-	def draw_station_network(self, template, output, filterfunction=lambda r: True):
+	def create_network_map(self, template, output, filterfunction=lambda r: True):
 		lines = []
 		for relation in self.relations.values():
 			rid, tags, members = relation
@@ -214,7 +214,7 @@ class PublicTransportNetwork:
 		f.write(content)
 		f.close()
 
-	def create_line_overview(self, template, output, filterfunction=lambda m: True):
+	def create_route_list(self, template, output, filterfunction=lambda m: True):
 
 		# print list of stations of a route
 		# within the directions of a route the stations are identified by their name

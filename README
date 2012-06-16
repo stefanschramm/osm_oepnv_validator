@@ -10,3 +10,5 @@ Start overview generation script with profile "berlin":
 ./generate_overview.py berlin
 
 The generated files can be found in the output/ directory.
+
+Extract OpenLayers-2.11 into output/ directory for viewing the maps.
