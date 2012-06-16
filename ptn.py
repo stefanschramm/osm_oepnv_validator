@@ -64,8 +64,10 @@ class PublicTransportNetwork:
 	route_validators = []
 	route_master_validators = []
 
+	profile = None
 	pbf = ""
 	mtime = None
+	relation_filter = lambda r: True
 
 	# the interesting objects are stored in these 3 dicts:
 
@@ -90,10 +92,34 @@ class PublicTransportNetwork:
 	# def relation_filter(self, relation)
 	# - defines which relations to validate
 
-	def ignore_relation(self, relation):
-		# defines which relations are excluded from validation
-		# can be overridden in parent class if required
-		return False
+	def load_network(self, pbf, filterfunction=lambda r: True):
+
+		# read data of public transport network
+		# required for validating and displaying
+
+		self.pbf = pbf
+
+		self.relation_filter = filterfunction
+
+		# get modification time of data source
+		selfmtime = datetime.datetime.fromtimestamp(os.stat(self.pbf)[stat.ST_MTIME])
+
+		# first pass:
+		# collect all interesting relations
+		print "Collecting relations..."
+		p = OSMParser(concurrency=4, relations_callback=self.relations_cb)
+		p.parse(pbf)
+
+		# second pass:
+		# collect ways for these relations
+		print "Collecting %i ways..." % len(self.ways)
+		p = OSMParser(concurrency=4, ways_callback=self.ways_cb)
+		p.parse(pbf)
+
+		# collect nodes for collected relations and ways
+		print "Collecting %i nodes..." % len(self.nodes)
+		p = OSMParser(concurrency=4, nodes_callback=self.nodes_cb)
+		p.parse(pbf)
 
 	def relations_cb(self, relations):
 		# callback: collect routes to validate
@@ -128,82 +154,232 @@ class PublicTransportNetwork:
 			if nid in self.nodes and self.nodes[nid] == None:
 				self.nodes[nid] = node
 
-	def get_sortkey(self, relation):
-		rid, tags, members = relation
-		key = ""
-		if "route_master" in tags:
-			key += tags["route_master"]
-		elif "route" in tags:
-			key += tags["route"]
-		key += "_"
-		if "ref" in tags:
-			ref = tags["ref"]
-			for number in set(re.findall("[0-9]+", ref)):
-				# append a lot of leading zeroes to each number
-				ref = ref.replace(number, "%010i" % int(number))
-			key += ref
-		key += "_"
-		if "type" in tags and tags["type"] == "route_master":
-			# for same refs put route_master at top
-			key += "0"
-		else:
-			key += "1"
-		return key
 
-	def count_member_types(self, relation):
-		# count how many members of each type the relation has
-		rid, tags, members = relation
-		types = {'relation': 0, 'node': 0, 'way': 0}
-		for member in members:
-			mid, typ, role = member
-			types[typ] += 1
-		return types
+	def create_report(self, template, output):
 
-	def dfs(self, n, edges, stop):
-		# print n
-		# depth first search (called recursively), started by validate_connectivity
-		if n in stop:
+		print "Validating relations..."
+
+		# create list that contains all important information for usage in template
+		lines_tpl = []
+		for relation in sorted(self.relations.values(), key=self.get_sortkey):
+			rid, tags, members = relation
+			l = {}
+			l['osmid'] = rid
+			l["fixme"] = ""
+			for tag in ['type', 'route', 'route_master', 'color', 'ref', 'name', 'note', 'fixme']:
+				l[tag] = tags[tag] if tag in tags else ""
+			if "FIXME" in tags:
+				l["fixme"] += tags["FIXME"]
+			l['errors'] = self.validate(relation)
+			l['noroutemaster'] = self.no_route_master(relation)
+			members = self.count_member_types(relation)
+			l['relations'] = members['relation']
+			l['ways'] = members['way']
+			l['nodes'] = members['node']
+			lines_tpl.append(l)
+
+		# write template
+		tpl = Template(filename=template, default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace')
+		content = tpl.render(lines=lines_tpl, mtime=self.mtime, region=self.text_region, filter=self.text_filter, datasource=self.text_datasource)
+		f = open(output, 'w')
+		f.write(content)
+		f.close()
+
+		print "Done."
+
+	def draw_station_network(self, template, output, filterfunction=lambda r: True):
+		lines = []
+		for relation in self.relations.values():
+			rid, tags, members = relation
+			if "type" not in tags or tags["type"] != "route":
+				# ignore route_master, only print individual routes
+				continue
+			if not filterfunction(relation):
+				continue
+			stations = []
+			for member in members:
+				mid, typ, role = member
+				if typ != "node" or not re.match(self.route_node_roles_pattern, role):
+					continue
+				if not mid in self.nodes or self.nodes[mid] == None:
+					# station hasn't been collected - probably not in pbf
+					continue
+				stations.append(self.nodes[mid])
+			lines.append([rid, tags, stations])
+
+		# write template
+		tpl = Template(filename=template, default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace')
+		content = tpl.render(lines=lines, mtime=self.mtime, region=self.text_region, filter=self.text_filter, datasource=self.text_datasource)
+		f = open(output, 'w')
+		f.write(content)
+		f.close()
+
+	def create_line_overview(self, template, output, filterfunction=lambda m: True):
+
+		# print list of stations of a route
+		# within the directions of a route the stations are identified by their name
+		# (which will cause problems in routes like M1 having "U Oranienburger Tor" 2 times)
+
+		lines = []
+
+		out = ""
+                for relation in sorted(self.relations.values(), key=self.get_sortkey):
+			rid, tags, members = relation
+			if "type" not in tags or tags["type"] != "route_master" or "ref" not in tags:
+				continue
+			if not filterfunction(relation):
+				continue
+			routes = filter(lambda m: m[0] in self.relations and m[1] == "relation", members)
+			routes = map(lambda m: self.relations[m[0]], routes)
+
+			pairs = []
+			for i in range(0, len(routes)):
+				if not "from" in routes[i][1] or not "to" in routes[i][1]:
+					continue
+				for j in range(i + 1, len(routes)):
+					if not "from" in routes[j][1] or not "to" in routes[j][1]:
+						continue
+					if routes[i][1]['from'] == routes[j][1]['to'] and routes[i][1]['to'] == routes[j][1]['from']:
+						pairs.append((routes[i], routes[j]))
+			if len(pairs) == 0:
+				# only output routes of route_masters that have matching from and to
+				continue
+
+			out += (70 * "=") + "\n"
+			out += (tags["name"] if "name" in tags else "") + (" (%i)\n" % rid)
+			out += "\n"
+			
+			variations = []
+
+			for pair in pairs:
+				rid1, tags1, members1 = pair[0]
+				stops1 = filter(lambda m: re.match(self.route_node_roles_pattern, m[2]), members1)
+				stops1 = map(lambda s: s[0], stops1)
+				rid2, tags2, members2 = pair[1]
+				stops2 = filter(lambda m: re.match(self.route_node_roles_pattern, m[2]), members2)
+				stops2 = map(lambda s: s[0], stops2)
+				stops2.reverse()
+
+				out += "(%i, %i)\n" % (rid1, rid2)
+				out += "\n"
+
+				# collect names
+				names1 = []
+				names2 = []
+				changes = {}
+				for s in stops1:
+					if s in self.nodes and self.nodes[s] != None:
+						nid, tags, coords= self.nodes[s]
+						if "name" in tags:
+							if tags["name"] not in names1:
+								names1.append(tags["name"])
+							if tags["name"] not in changes:
+								changes[tags["name"]] = []
+							for p in self.parents[("node", nid)]:
+								if p[0] != "relation":
+									continue
+								# TODO: check if not available?
+								r = self.relations[p[1]]
+								if "ref" in r[1] and r[1]["ref"] != relation[1]["ref"] and r[1]["ref"] not in changes[tags["name"]]:
+									changes[tags["name"]].append(r[1]["ref"])
+							
+				for s in stops2:
+					if s in self.nodes and self.nodes[s] != None:
+						nid, tags, coords= self.nodes[s]
+						if "name" in tags:
+							if tags["name"] not in names2:
+								names2.append(tags["name"])
+							if tags["name"] not in changes:
+								changes[tags["name"]] = []
+							for p in self.parents[("node", nid)]:
+								if p[0] != "relation":
+									continue
+								# TODO: check if not available?
+								r = self.relations[p[1]]
+								if "ref" in r[1] and r[1]["ref"] != relation[1]["ref"] and r[1]["ref"] not in changes[tags["name"]]:
+									changes[tags["name"]].append(r[1]["ref"])
+
+				stops = []
+
+				i = 0;
+				j = 0;
+				while i < len(names1) or j < len(names2):
+					# TODO: logic correct??
+					if i == len(names1):
+						symbol = u"▲"
+						name = names2[j]
+						j += 1
+					elif j == len(names2):
+						symbol = u"▼"
+						name = names1[i]
+						i += 1
+					elif names1[i] == names2[j]:
+						symbol = u"●"
+						name = names1[i]
+						i += 1
+						j += 1
+					elif not names1[i] in names2:
+						symbol = u"▼"
+						name = names1[i]
+						i += 1
+					else:
+						symbol = u"▲"
+						name = names2[j]
+						j += 1
+					if len(changes[name]) > 0:
+						out += "%s %s [%s]\n" % (symbol, name, ", ".join(sorted(changes[name])))
+					else:
+						out += "%s %s\n" % (symbol, name)
+					stops.append((symbol, name, changes[name]))
+				out += "\n"
+				variations.append({
+					"from": pair[0][1]["from"],
+					"to": pair[0][1]["to"],
+					"ids": (pair[0][0], pair[1][0]),
+					"stops": stops
+				})
+			lines.append({
+				'id': rid,
+				'name': relation[1]['name'] if "name" in relation[1] else "",
+				'ref': relation[1]['ref'] if "ref" in relation[1] else "",
+				'variations': variations
+			})
+
+		# write template
+		tpl = Template(filename=template, default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace')
+		content = tpl.render(lines=lines, mtime=self.mtime, region=self.text_region, filter=self.text_filter, datasource=self.text_datasource)
+		f = open(output, 'w')
+		f.write(content)
+		f.close()
+
+	def validate(self, relation):
+		# validate passed line
+
+		rid, tags, members = relation
+		errors = []
+
+		print "Validating line %s..." % rid
+
+		if self.ignore_relation(relation):
+			return [("ignored", "(ignoring this relation)")]
+
+		for key in tags:
+			main_key = key.split(":")[0]
+			if not main_key in self.valid_keys:
+				errors.append(("unknown_key", "unknown key: %s" % key))
+
+		# do validation depending on type of route 
+
+		if "type" not in tags:
 			return []
-		reached = [n]
-		if n in edges and len(edges[n]) > 0:
-			stop.append(n)
-			for target in edges[n]:
-				reached.extend(self.dfs(target, edges, stop))
-		return reached
 
-	def validate_connectivity(self, ways):
-		# check if all passed ways are connected
-		edges = {}
-		nodes = []
-		# build a connectivity (edge) matrix for all nodes in all (non-platform-)ways
-		for way in ways:
-			node_prev = None
-			if way not in self.ways or self.ways[way] == None:
-				return None # unable to validate - way not in pbf
-			for node in self.ways[way][2]:
-				nodes.append(node)
-				if node_prev != None:
-					if node_prev not in edges:
-						edges[node_prev] = [node]
-					else:
-						edges[node_prev].append(node)
-					if node not in edges:
-						edges[node] = [node_prev]
-					else:
-						edges[node].append(node_prev)
-				node_prev = node
-		nodes = list(set(nodes))
-		if len(nodes) == 0:
-			# no ways contained
-			return True
-		if len(nodes) > 900:
-			# to many nodes, would raise exception because of recursion
-			# TODO: implement better connectivity check
-			return None
-		# start dfs to check if all nodes are reachable from each other
-		reached_nodes = self.dfs(nodes[0], edges, [])
-		not_reached = set(nodes).difference(set(reached_nodes))
-		return len(not_reached) == 0
+		if tags["type"] == "route_master":
+			errors.extend(self.validate_route_master(relation))
+
+		if tags["type"] == "route":
+			errors.extend(self.validate_route(relation))
+
+		return set(errors)
 
 	def validate_route_master(self, relation):
 		errors = []
@@ -294,31 +470,87 @@ class PublicTransportNetwork:
 
 		return errors
 
-	def validate(self, relation):
-		# validate passed line
+	def ignore_relation(self, relation):
+		# defines which relations are excluded from validation
+		# can be overridden in parent class if required
+		return False
 
+	def get_sortkey(self, relation):
 		rid, tags, members = relation
-		errors = []
+		key = ""
+		if "route_master" in tags:
+			key += tags["route_master"]
+		elif "route" in tags:
+			key += tags["route"]
+		key += "_"
+		if "ref" in tags:
+			ref = tags["ref"]
+			for number in set(re.findall("[0-9]+", ref)):
+				# append a lot of leading zeroes to each number
+				ref = ref.replace(number, "%010i" % int(number))
+			key += ref
+		key += "_"
+		if "type" in tags and tags["type"] == "route_master":
+			# for same refs put route_master at top
+			key += "0"
+		else:
+			key += "1"
+		return key
 
-		print "Validating line %s..." % rid
+	def count_member_types(self, relation):
+		# count how many members of each type the relation has
+		rid, tags, members = relation
+		types = {'relation': 0, 'node': 0, 'way': 0}
+		for member in members:
+			mid, typ, role = member
+			types[typ] += 1
+		return types
 
-		if self.ignore_relation(relation):
-			return [("ignored", "(ignoring this relation)")]
+	def validate_connectivity(self, ways):
+		# check if all passed ways are connected
+		edges = {}
+		nodes = []
+		# build a connectivity (edge) matrix for all nodes in all (non-platform-)ways
+		for way in ways:
+			node_prev = None
+			if way not in self.ways or self.ways[way] == None:
+				return None # unable to validate - way not in pbf
+			for node in self.ways[way][2]:
+				nodes.append(node)
+				if node_prev != None:
+					if node_prev not in edges:
+						edges[node_prev] = [node]
+					else:
+						edges[node_prev].append(node)
+					if node not in edges:
+						edges[node] = [node_prev]
+					else:
+						edges[node].append(node_prev)
+				node_prev = node
+		nodes = list(set(nodes))
+		if len(nodes) == 0:
+			# no ways contained
+			return True
+		if len(nodes) > 900:
+			# to many nodes, would raise exception because of recursion
+			# TODO: implement better connectivity check
+			return None
+		# start dfs to check if all nodes are reachable from each other
+		reached_nodes = self.dfs(nodes[0], edges, [])
+		not_reached = set(nodes).difference(set(reached_nodes))
+		return len(not_reached) == 0
 
-		for key in tags:
-			main_key = key.split(":")[0]
-			if not main_key in self.valid_keys:
-				errors.append(("unknown_key", "unknown key: %s" % key))
-
-		# do validation depending on type of route 
-
-		if tags["type"] == "route_master":
-			errors.extend(self.validate_route_master(relation))
-
-		if tags["type"] == "route":
-			errors.extend(self.validate_route(relation))
-
-		return set(errors)
+	def dfs(self, n, edges, stop):
+		# print n
+		# depth first search (called recursively), started by validate_connectivity
+		if n in stop:
+			return []
+		reached = [n]
+		if n in edges and len(edges[n]) > 0:
+			stop.append(n)
+			for target in edges[n]:
+				reached.extend(self.dfs(target, edges, stop))
+		return reached
 
 	def no_route_master(self, relation):
 		rid, tags, members = relation
@@ -337,204 +569,4 @@ class PublicTransportNetwork:
 				return False
 		# no correct parent: missing route_master
 		return True
-
-	def load_network(self, pbf="berlin.osm.pbf"):
-
-		# read data of public transport network
-		# required for validating and displaying
-
-		self.pbf = pbf
-
-		# get modification time of data source
-		selfmtime = datetime.datetime.fromtimestamp(os.stat(self.pbf)[stat.ST_MTIME])
-
-		# first pass:
-		# collect all interesting relations
-		print "Collecting relations..."
-		p = OSMParser(concurrency=4, relations_callback=self.relations_cb)
-		p.parse(pbf)
-
-		# second pass:
-		# collect ways for these relations
-		print "Collecting %i ways..." % len(self.ways)
-		p = OSMParser(concurrency=4, ways_callback=self.ways_cb)
-		p.parse(pbf)
-
-		# collect nodes for collected relations and ways
-		print "Collecting %i nodes..." % len(self.nodes)
-		p = OSMParser(concurrency=4, nodes_callback=self.nodes_cb)
-		p.parse(pbf)
-
-	def create_report(self, template="template.tpl", output="lines.htm"):
-
-		print "Validating relations..."
-
-		# create list that contains all important information for usage in template
-		lines_tpl = []
-		for relation in sorted(self.relations.values(), key=self.get_sortkey):
-			rid, tags, members = relation
-			l = {}
-			l['osmid'] = rid
-			l["fixme"] = ""
-			for tag in ['type', 'route', 'route_master', 'color', 'ref', 'name', 'note', 'fixme']:
-				l[tag] = tags[tag] if tag in tags else ""
-			if "FIXME" in tags:
-				l["fixme"] += tags["FIXME"]
-			l['errors'] = self.validate(relation)
-			l['noroutemaster'] = self.no_route_master(relation)
-			members = self.count_member_types(relation)
-			l['relations'] = members['relation']
-			l['ways'] = members['way']
-			l['nodes'] = members['node']
-			lines_tpl.append(l)
-
-		# write template
-		tpl = Template(filename=template, default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace')
-		content = tpl.render(lines=lines_tpl, mtime=self.mtime, region=self.text_region, filter=self.text_filter, datasource=self.text_datasource)
-		f = open(output, 'w')
-		f.write(content)
-		f.close()
-
-		print "Done."
-
-	def draw_station_network(self, filterfunction=lambda r: "route" in r[1] and r[1]["route"] in ["subway",  "light_rail"], template="network.tpl", output="sunetz.htm"):
-		lines = []
-		for relation in self.relations.values():
-			rid, tags, members = relation
-			if "type" not in tags or tags["type"] != "route":
-				# ignore route_master, only print individual routes
-				continue
-			if not filterfunction(relation):
-				continue
-			stations = []
-			for member in members:
-				mid, typ, role = member
-				if typ != "node" or not re.match(self.route_node_roles_pattern, role):
-					continue
-				if not mid in self.nodes or self.nodes[mid] == None:
-					# station hasn't been collected - probably not in pbf
-					continue
-				stations.append(self.nodes[mid])
-			lines.append([rid, tags, stations])
-
-		# write template
-		tpl = Template(filename=template, default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace')
-		content = tpl.render(lines=lines, mtime=self.mtime, region=self.text_region, filter=self.text_filter, datasource=self.text_datasource)
-		f = open(output, 'w')
-		f.write(content)
-		f.close()
-
-	def print_master_routes(self, filterfunction=lambda m: True, template="routes.tpl", output="routes.htm"):
-
-		# print list of stations of a route
-		# within the directions of a route the stations are identified by their name
-		# (which will cause problems in routes like M1 having "U Oranienburger Tor" 2 times)
-
-		# TODO: use template instead of output to console
-
-		output = ""
-                for relation in sorted(self.relations.values(), key=self.get_sortkey):
-			rid, tags, members = relation
-			if "type" not in tags or tags["type"] != "route_master" or "ref" not in tags:
-				continue
-			if not filterfunction(relation):
-				continue
-			routes = filter(lambda m: m[0] in self.relations and m[1] == "relation", members)
-			routes = map(lambda m: self.relations[m[0]], routes)
-			pairs = []
-			for i in range(0, len(routes)):
-				if not "from" in routes[i][1] or not "to" in routes[i][1]:
-					continue
-				for j in range(i + 1, len(routes)):
-					if not "from" in routes[j][1] or not "to" in routes[j][1]:
-						continue
-					if routes[i][1]['from'] == routes[j][1]['to'] and routes[i][1]['to'] == routes[j][1]['from']:
-						pairs.append((routes[i], routes[j]))
-			if len(pairs) == 0:
-				# only output routes of route_masters that have matching from and to
-				continue
-
-			output += (70 * "=") + "\n"
-			output += (tags["name"] if "name" in tags else "") + (" (%i)\n" % rid)
-			output += "\n"
-
-			for pair in pairs:
-				rid1, tags, members = pair[0]
-				stops1 = filter(lambda m: re.match(self.route_node_roles_pattern, m[2]), members)
-				stops1 = map(lambda s: s[0], stops1)
-				rid2, tags, members = pair[1]
-				stops2 = filter(lambda m: re.match(self.route_node_roles_pattern, m[2]), members)
-				stops2 = map(lambda s: s[0], stops2)
-				stops2.reverse()
-
-				output += "(%i, %i)\n" % (rid1, rid2)
-				output += "\n"
-
-				# collect names
-				names1 = []
-				names2 = []
-				changes = {}
-				for s in stops1:
-					if s in self.nodes and self.nodes[s] != None:
-						nid, tags, coords= self.nodes[s]
-						if "name" in tags:
-							if tags["name"] not in names1:
-								names1.append(tags["name"])
-							if tags["name"] not in changes:
-								changes[tags["name"]] = []
-							for p in self.parents[("node", nid)]:
-								if p[0] != "relation":
-									continue
-								# TODO: check if not available?
-								r = self.relations[p[1]]
-								if "ref" in r[1] and r[1]["ref"] != relation[1]["ref"] and r[1]["ref"] not in changes[tags["name"]]:
-									changes[tags["name"]].append(r[1]["ref"])
-							
-				for s in stops2:
-					if s in self.nodes and self.nodes[s] != None:
-						nid, tags, coords= self.nodes[s]
-						if "name" in tags:
-							if tags["name"] not in names2:
-								names2.append(tags["name"])
-							if tags["name"] not in changes:
-								changes[tags["name"]] = []
-							for p in self.parents[("node", nid)]:
-								if p[0] != "relation":
-									continue
-								# TODO: check if not available?
-								r = self.relations[p[1]]
-								if "ref" in r[1] and r[1]["ref"] != relation[1]["ref"] and r[1]["ref"] not in changes[tags["name"]]:
-									changes[tags["name"]].append(r[1]["ref"])
-
-				i = 0;
-				j = 0;
-				while i < len(names1) or j < len(names2):
-					# TODO: logic correct??
-					if i == len(names1):
-						symbol = u"▲"
-						name = names2[j]
-						j += 1
-					elif j == len(names2):
-						symbol = u"▼"
-						name = names1[i]
-						i += 1
-					elif names1[i] == names2[j]:
-						symbol = u"●"
-						name = names1[i]
-						i += 1
-						j += 1
-					elif not names1[i] in names2:
-						symbol = u"▼"
-						name = names1[i]
-						i += 1
-					else:
-						symbol = u"▲"
-						name = names2[j]
-						j += 1
-					if len(changes[name]) > 0:
-						output += "%s %s [%s]\n" % (symbol, name, ", ".join(sorted(changes[name])))
-					else:
-						output += "%s %s\n" % (symbol, name)
-				output += "\n"
-		print output
 

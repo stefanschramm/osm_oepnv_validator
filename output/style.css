@@ -1,0 +1,55 @@
+body,td {
+	font-family: sans-serif;
+	font-size: 8pt;
+	vertical-align: top;
+}
+table {
+	border-collapse: collapse
+}
+th {
+	background-color: #eee;
+	text-align: left;
+}
+th,td {
+	border: 1px solid #ccc;
+	padding: 1px;
+}
+ul {
+	list-style-position: outside;
+	padding: 0;
+	margin: 0 0 0 14px;
+}
+a {
+	text-decoration: none;
+}
+input {
+	display: none;
+}
+.right {
+	text-align: right;
+}
+.center {
+	text-align: center;
+}
+.monospace {
+	font-family: monospace;
+}
+.nowrap {
+	white-space: nowrap;
+}
+.selected {
+	background-color: #ddd;
+}
+.zebra1_master {
+	background: #3D7AB8
+}
+.zebra1_route {
+	background: #9FBFDF
+}
+.zebra2_master {
+	background: #62CB62
+}
+.zebra2_route {
+	background: #94DB94
+}
+
