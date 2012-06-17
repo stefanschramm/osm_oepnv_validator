@@ -224,7 +224,6 @@ class PublicTransportNetwork:
 
 		lines = []
 
-		out = ""
                 for relation in sorted(self.relations.values(), key=self.get_sortkey):
 			rid, tags, members = relation
 			if "type" not in tags or tags["type"] != "route_master" or "ref" not in tags:
@@ -247,13 +246,10 @@ class PublicTransportNetwork:
 				# only output routes of route_masters that have matching from and to
 				continue
 
-			out += (70 * "=") + "\n"
-			out += (tags["name"] if "name" in tags else "") + (" (%i)\n" % rid)
-			out += "\n"
-			
 			variations = []
 
 			for pair in pairs:
+				# get stops for each direction
 				rid1, tags1, members1 = pair[0]
 				stops1 = filter(lambda m: re.match(self.route_node_roles_pattern, m[2]), members1)
 				stops1 = map(lambda s: s[0], stops1)
@@ -262,10 +258,7 @@ class PublicTransportNetwork:
 				stops2 = map(lambda s: s[0], stops2)
 				stops2.reverse()
 
-				out += "(%i, %i)\n" % (rid1, rid2)
-				out += "\n"
-
-				# collect names
+				# collect names and changes for each direction
 				names1 = []
 				names2 = []
 				changes = {}
@@ -284,7 +277,6 @@ class PublicTransportNetwork:
 								r = self.relations[p[1]]
 								if "ref" in r[1] and r[1]["ref"] != relation[1]["ref"] and r[1]["ref"] not in changes[tags["name"]]:
 									changes[tags["name"]].append(r[1]["ref"])
-							
 				for s in stops2:
 					if s in self.nodes and self.nodes[s] != None:
 						nid, tags, coords= self.nodes[s]
@@ -328,12 +320,7 @@ class PublicTransportNetwork:
 						symbol = u"▲"
 						name = names2[j]
 						j += 1
-					if len(changes[name]) > 0:
-						out += "%s %s [%s]\n" % (symbol, name, ", ".join(sorted(changes[name])))
-					else:
-						out += "%s %s\n" % (symbol, name)
 					stops.append((symbol, name, changes[name]))
-				out += "\n"
 				variations.append({
 					"from": pair[0][1]["from"],
 					"to": pair[0][1]["to"],
