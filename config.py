@@ -4,6 +4,9 @@
 import os
 import rulesets.berlin
 import rulesets.hiking
+import rulesets.bicycle
+import rulesets.power
+import rulesets.other
 
 script_path = os.path.dirname(__file__)
 
@@ -14,7 +17,7 @@ template_dir = script_path + "/templates"
 profiles = {
 	'berlin_oepnv': {
 		'shortname': 'berlin_oepnv',
-		'name': u"Berlin ÖPNV (BVG + S-Bahn Berlin GmbH)",
+		'name': u"Berlin: ÖPNV (only BVG and S-Bahn Berlin GmbH)",
 		'rules': rulesets.berlin.PublicTransportNetworkBerlin,
 		'filter': lambda r: "network" in r[1] \
 				and r[1]["network"] == "VBB" \
@@ -35,14 +38,10 @@ profiles = {
 			'expressbus': ("ExpressBus", rulesets.berlin.is_express_bus)
 		}
 	},
-	'vbb': {
-		'shortname': 'vbb',
-		'name': u"VBB (ohne BVG und S-Bahn Berlin GmbH)",
+	'berlin_vbb': {
+		'shortname': 'berlin_vbb',
+		'name': u"Berlin: VBB (without BVG and S-Bahn Berlin GmbH)",
 		'rules': rulesets.berlin.PublicTransportNetworkBerlin,
-#		'filter': lambda r: "network" in r[1] \
-#				and r[1]["network"] == "VBB" \
-#				and "type" in r[1] \
-#				and r[1]["type"] in ["route", "route_master"],
 		'filter': lambda r: "network" in r[1] \
 				and r[1]["network"] == "VBB" \
 				and "type" in r[1] \
@@ -54,23 +53,21 @@ profiles = {
 			'all': ("alle Linien", lambda r: True)
 		}
 	},
-	'no_vbb': {
-		'shortname': 'no_vbb',
-		'name': 'nicht-VBB',
-		'rules': rulesets.berlin.PublicTransportNetworkBerlin,
-		'filter': lambda r: ("network" not in r[1] \
-				or r[1]["network"] != "VBB") \
-				and "type" in r[1] \
-				and r[1]["type"] in ["route", "route_master"],
+	'berlin_bicycle': {
+		'shortname': 'berlin_bicycle',
+		'name': 'Berlin: Bicycle Routes',
+		'rules': rulesets.bicycle.Bicycle,
+		'filter': lambda r: "type" in r[1] \
+				and r[1]["type"] in ["route", "route_master"] \
+				and (("route" in r[1] and r[1]["route"] == "bicycle") \
+				or ("route_master" in r[1] and r[1]["route_master"] == "bicycle")),
 		'datasource': 'berlin.osm.pbf',
 		'stopplan': False,
-		'maps': {
-			# 'all': ("alle Linien", lambda r: True)
-		}
+		'maps': {}
 	},
 	'berlin_hiking': {
 		'shortname': 'berlin_hiking',
-		'name': 'Berlin Wanderwege',
+		'name': 'Berlin: Hiking Routes',
 		'rules': rulesets.hiking.Hiking,
 		'filter': lambda r: "type" in r[1] \
 				and r[1]["type"] in ["route", "route_master"] \
@@ -78,9 +75,35 @@ profiles = {
 				or ("route_master" in r[1] and r[1]["route_master"] == "hiking")),
 		'datasource': 'berlin.osm.pbf',
 		'stopplan': False,
-		'maps': {
-			# 'all': ("alle Linien", lambda r: True)
-		}
+		'maps': {}
+	},
+	'berlin_power': {
+		'shortname': 'berlin_power',
+		'name': 'Berlin: Powerlines',
+		'rules': rulesets.power.Power,
+		'filter': lambda r: "type" in r[1] \
+				and r[1]["type"] in ["route", "route_master"] \
+				and (("route" in r[1] and r[1]["route"] == "power") \
+				or ("route_master" in r[1] and r[1]["route_master"] == "power")),
+		'datasource': 'berlin.osm.pbf',
+		'stopplan': False,
+		'maps': {}
+	},
+	'berlin_other': {
+		'shortname': 'berlin_other',
+		'name': 'Berlin: other (no VBB, no hiking routes, no bicycle routes, no powerlines)',
+		'rules': rulesets.other.Other,
+		'filter': lambda r: ("network" not in r[1] \
+				or r[1]["network"] != "VBB") \
+				and "type" in r[1] \
+				and r[1]["type"] in ["route", "route_master"] \
+				and not( \
+					(("route" in r[1] and r[1]["route"] in ["hiking", "bicycle", "power"]) \
+					or ("route_master" in r[1] and r[1]["route_master"] in ["hiking", "bicycle", "power"]))
+				),
+		'datasource': 'berlin.osm.pbf',
+		'stopplan': False,
+		'maps': {}
 	}
 }
 

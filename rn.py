@@ -36,8 +36,10 @@ class RouteNetwork():
 	# dummy profile
 	profile = {
 		'name': '',
+		'shortname': '',
 		'filter_text': '',
 		'datasource': '',
+		'stopplan': False,
 		'maps': {}
 	}
 
