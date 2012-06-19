@@ -16,9 +16,14 @@
 </head>
 <body>
 	<%include file="/header.tpl" args="page='routes'" />
+	<p><strong>Lines:</strong>
+	% for l in lines:
+		<a href="#relation-${l['id'] | h}">${l['ref'] | h}</a>
+	% endfor
+	</p>
 	% for l in lines:
 		<div>
-			<h2>${l['name'] | h}, ref=${l['ref'] | h} (<a href="http://www.openstreetmap.org/browse/relation/${l['id'] | h}">${l['id'] | h}</a> <small><%include file="/relationtools.tpl" args="osmid=l['id'], ref=l['ref']"/></small>)</h2>
+			<h2 id="relation-${l['id'] | h}">${l['name'] | h}, ref=${l['ref'] | h} (<a href="http://www.openstreetmap.org/browse/relation/${l['id'] | h}">${l['id'] | h}</a> <small><%include file="/relationtools.tpl" args="osmid=l['id'], ref=l['ref']"/></small>)</h2>
 			% for v in l['variations']:
 				<div>
 				<h3>${v['from'] | h} &lt;=&gt; ${v['to'] | h}

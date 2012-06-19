@@ -22,6 +22,9 @@ ul {
 a {
 	text-decoration: none;
 }
+a:active {
+	color: #000;
+}
 input {
 	display: none;
 }
@@ -53,13 +56,12 @@ input {
 	background: #94DB94
 }
 .menu {
-	border-bottom: 1px solid #000;
-	padding: 5px;
+	line-height: 3em;
 }
 .menu a {
-	background-color: #eee;
-	padding: 5px;
-	border: 1px solid #000;
+	background-color: #ddd;
+	padding: 6px;
+	white-space: nowrap;
 }
 .indexlink {
 	float:right;
