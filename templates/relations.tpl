@@ -96,7 +96,7 @@ $(document).ready(init);
 					trclass = "zebra1_master" if zebracounter % 2 == 1 else "zebra2_master"
 
 			%>
-			<tr class="${trclass}">
+			<tr class="${trclass}" id="relation-${l['osmid'] | h}" >
 				<td class="right"><a href="http://www.openstreetmap.org/browse/relation/${l['osmid'] | h}">${l['osmid'] | h}</a></td>
 				<td class="nowrap">
 					<%include file="/relationtools.tpl" args="osmid=l['osmid'], ref=l['ref']"/>
