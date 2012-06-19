@@ -1,3 +1,4 @@
+<div class="indexlink"><a href="index.htm">index</a></div>
 <%page args="profile,page" />
 <h1>${profile['name'] | h}</h1>
 <div class="menu menu-${page}">

@@ -106,5 +106,17 @@ profiles = {
 		'stopplan': False,
 		'maps': {}
 	}
+#	'germany_power': {
+#		'shortname': 'germany_power',
+#		'name': 'Germany: Powerlines',
+#		'rules': rulesets.power.Power,
+#		'filter': lambda r: "type" in r[1] \
+#				and r[1]["type"] in ["route", "route_master"] \
+#				and (("route" in r[1] and r[1]["route"] == "power") \
+#				or ("route_master" in r[1] and r[1]["route_master"] == "power")),
+#		'datasource': 'germany.osm.pbf',
+#		'stopplan': False,
+#		'maps': {}
+#	}
 }
 
