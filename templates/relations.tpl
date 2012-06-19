@@ -39,10 +39,6 @@ function init() {
 	$('input.checkbox').each(function(index, checkbox) {
 		checkCheckbox(checkbox);
 	});
-        $('tr').bind('click', function(ev) {
-                dbg = ev.target;
-                $(ev.target.parentElement).toggleClass('selected');
-        });
 }
 
 $(document).ready(init);
