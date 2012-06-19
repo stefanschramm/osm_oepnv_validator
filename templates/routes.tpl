@@ -10,7 +10,7 @@
 %>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-	<title>OSM Transportation Overview</title>
+	<title>OSM Route Tools</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
 	<script type="text/javascript">
@@ -31,8 +31,7 @@ $(document).ready(init);
 			% for v in l['variations']:
 				<div>
 				<h3>${v['from'] | h} &lt;=&gt; ${v['to'] | h}
-					(<a href="http://www.openstreetmap.org/browse/relation/${v['ids'][0] | h}">${v['ids'][0] | h}</a> <small><%include file="/relationtools.tpl" args="osmid=v['ids'][0], ref=l['ref']"/></small>,
-					<a href="http://www.openstreetmap.org/browse/relation/${v['ids'][1] | h}">${v['ids'][1] | h}</a> <small><%include file="/relationtools.tpl" args="osmid=v['ids'][1], ref=l['ref']"/></small>)</h3>
+					(<a href="http://www.openstreetmap.org/browse/relation/${v['ids'][0] | h}">${v['ids'][0] | h}</a> <small><%include file="/relationtools.tpl" args="osmid=v['ids'][0], ref=l['ref']"/></small>, <a href="http://www.openstreetmap.org/browse/relation/${v['ids'][1] | h}">${v['ids'][1] | h}</a> <small><%include file="/relationtools.tpl" args="osmid=v['ids'][1], ref=l['ref']"/></small>)</h3>
 				<table>
 				% for s in v['stops']:
 					<tr>
@@ -46,9 +45,7 @@ $(document).ready(init);
 			% endfor
 		</div>
 	% endfor
-
-	<p>Map data © <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA</a></p>
-	<p>Source code of validation script is available at <a href="https://github.com/stefanschramm/osm_oepnv_validator">https://github.com/stefanschramm/osm_oepnv_validator</a>.</p>
+	<%include file="/footer.tpl" />
 </body>
 </html>
 

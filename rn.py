@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# ptn.py - list and validate OSM public transport lines
+# rn.py - load network of routes from OSM
 #
 # Copyright (C) 2012, Stefan Schramm <mail@stefanschramm.net>
 #
@@ -44,7 +44,7 @@ class RouteNetwork():
 	pbf = ""
 	mtime = None
 	relation_filter = lambda r: True
-	makolookup = TemplateLookup(directories=[os.path.dirname(__file__) + '/templates/mapper'])
+	makolookup = TemplateLookup(directories=[os.path.dirname(__file__) + '/templates'])
 
 	# the interesting objects will be stored in these 3 dicts:
 

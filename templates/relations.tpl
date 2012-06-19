@@ -20,7 +20,7 @@
 %>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-	<title>OSM Relation Overview</title>
+	<title>OSM Route Tools</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
 	<script type="text/javascript">
@@ -72,9 +72,9 @@ $(document).ready(init);
 				<th>route=</th>
 				<th class="right"><abbr title="number of members of type 'way'">#W</abbr></th>
 				<th class="right"><abbr title="number of members of type 'node'">#N</abbr></th>
-				<th>ref=</th>
-				<th>color=</th>
-				<th>name=</th>
+				% for tag in additional_tags:
+				<th>${tag | h}=</th>
+				% endfor
 				<th>validation errors</th>
 				<th>no <abbr title="route_master">r_m</abbr></th>
 				<th>fixme+FIXME=</th>
@@ -111,12 +111,16 @@ $(document).ready(init);
 				<td>${l['route'] | h}</td>
 				<td class="right">${l['ways'] | h}</td>
 				<td class="right">${l['nodes'] | h}</td>
-				<td>${l['ref'] | h}</td>
-				<%
-					color = l['color'] if good_color(l['color']) else "#ffffff"
-				%>
-				<td class="monospace"><span style="background-color: ${color};">&#160;&#160;</span>&#160;${l['color'] | h}</td>
-				<td>${l['name'] | h}</td>
+				% for tag in additional_tags:
+					% if tag in ['color', 'colour', 'text_color', 'text_colour']:
+					<%
+					color = l[tag] if good_color(l[tag]) else "#ffffff"
+					%>
+					<td class="monospace"><span style="background-color: ${color};">&#160;&#160;</span>&#160;${l['color'] | h}</td>
+					% else:
+					<td>${l[tag] | h}</td>
+					% endif
+				% endfor
 				<td>
 				% if len(l['errors']) > 0:
 					<ul>
@@ -137,8 +141,7 @@ $(document).ready(init);
 		% endfor
 		</tbody>
 	</table>
-	<p>Map data © <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA</a></p>
-	<p>Source code of validation script is available at <a href="https://github.com/stefanschramm/osm_oepnv_validator">https://github.com/stefanschramm/osm_oepnv_validator</a>.</p>
+	<%include file="/footer.tpl" />
 </body>
 </html>
 

@@ -10,5 +10,3 @@
 % endif
 <a href="http://osmrm.openstreetmap.de/gpx.jsp?relation=${osmid | h}" title="GPX">g</a>
 <a href="http://osm.kesto.de/rnc/?r=${osmid | h}&p=/^(stop:[0-9]+|stop|forward:stop:[0-9]+|backward:stop:[0-9]+|platform:[0-9]+|platform)$$/" title="Relation's Node Connector">n</a>
-
-

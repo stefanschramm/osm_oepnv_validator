@@ -33,16 +33,17 @@ def main():
 		ptn.load_network(pbf=config.data_dir + "/" + filename, \
 				filterfunction=profile['filter'])
 
-	ptn.create_relation_overview(template=config.template_dir + "/mapper/relations.tpl", \
+	ptn.create_relation_overview(template=config.template_dir + "/relations.tpl", \
 			output=config.output_dir + ("/%s.htm" % profile_name))
 
-	ptn.create_route_list(template=config.template_dir + "/mapper/routes.tpl",
-			output=config.output_dir + ("/%s_lines.htm" % profile_name))
+	if profile['stopplan']:
+		ptn.create_route_list(template=config.template_dir + "/routes.tpl",
+				output=config.output_dir + ("/%s_lines.htm" % profile_name))
 
 	# create maps
 	for m in profile['maps']:
 		print "Creating map %s..." % m
-		ptn.create_network_map(template=config.template_dir + "/mapper/map.tpl", \
+		ptn.create_network_map(template=config.template_dir + "/map.tpl", \
 				output=config.output_dir + ("/%s_map_%s.htm" % (profile_name, m)), \
 				filterfunction=profile['maps'][m][1], \
 				mapkey=m)
