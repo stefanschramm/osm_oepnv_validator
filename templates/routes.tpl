@@ -10,24 +10,15 @@
 %>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-	<title>OSM Route Tools</title>
+	<title>OSM Route Utilities</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
-	<script type="text/javascript">
-
-function init() {
-}
-
-$(document).ready(init);
-
-	</script>
 	<link rel="stylesheet" type="text/css" href="style.css" />
 </head>
 <body>
 	<%include file="/header.tpl" args="page='routes'" />
 	% for l in lines:
 		<div>
-			<h2>${l['name'] | h} ${l['ref'] | h} (<a href="http://www.openstreetmap.org/browse/relation/${l['id'] | h}">${l['id'] | h}</a> <small><%include file="/relationtools.tpl" args="osmid=l['id'], ref=l['ref']"/></small>)</h2>
+			<h2>${l['name'] | h}, ref=${l['ref'] | h} (<a href="http://www.openstreetmap.org/browse/relation/${l['id'] | h}">${l['id'] | h}</a> <small><%include file="/relationtools.tpl" args="osmid=l['id'], ref=l['ref']"/></small>)</h2>
 			% for v in l['variations']:
 				<div>
 				<h3>${v['from'] | h} &lt;=&gt; ${v['to'] | h}

@@ -20,7 +20,7 @@
 %>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-	<title>OSM Route Tools</title>
+	<title>OSM Route Utilities</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
 	<script type="text/javascript">
