@@ -27,11 +27,7 @@ import datetime
 from imposm.parser import OSMParser
 from mako.lookup import TemplateLookup
 
-import rlc
-import rmc
-import rvoc
-
-class RouteNetwork():
+class RouteNetwork(object):
 
 	# dummy profile
 	profile = {
@@ -48,40 +44,36 @@ class RouteNetwork():
 	relation_filter = lambda r: True
 	makolookup = TemplateLookup(directories=[os.path.dirname(__file__) + '/templates'])
 
-	# the interesting objects will be stored in these 3 dicts:
+	def __init__(self):
+		# the interesting objects will be stored in these 3 dicts:
 
-	# dict of relations; index: relation id
-	# each relation consists of (relation_id, tags, members)
-	# where members consists of (member_id, member_type, role)
-	relations = {}
+		# dict of relations; index: relation id
+		# each relation consists of (relation_id, tags, members)
+		# where members consists of (member_id, member_type, role)
+		self.relations = {}
 
-	# dict of ways; index: way id
-	# each way consists of (way_id, tags, node_ids)
-	ways = {}
+		# dict of ways; index: way id
+		# each way consists of (way_id, tags, node_ids)
+		self.ways = {}
 
-	# dict of nodes; index: node id
-	# each node consists of (node_id, tags, coordinates)
-	nodes = {}
+		# dict of nodes; index: node id
+		# each node consists of (node_id, tags, coordinates)
+		self.nodes = {}
 
-	# additionally information about parent-relations is collected:
-	# dict of parent relations; index: id of relation to get parent relations for
-	parents = {}
-
-	# child classes need to implement:
-	# def relation_filter(self, relation)
-	# - defines which relations to validate
+		# additionally information about parent-relations is collected:
+		# dict of parent relations; index: id of relation to get parent relations for
+		self.parents = {}
 
 	def load_network(self, pbf, filterfunction=lambda r: True):
 
 		# read data of public transport network
 		# required for validating and displaying
 
-		self.pbf = pbf
-
 		self.relation_filter = filterfunction
 
 		# get modification time of data source
-		self.mtime = datetime.datetime.fromtimestamp(os.stat(self.pbf)[stat.ST_MTIME])
+		# TODO: how to determine time when reading from multiple sources?
+		self.mtime = datetime.datetime.fromtimestamp(os.stat(pbf)[stat.ST_MTIME])
 
 		# first pass:
 		# collect all interesting relations

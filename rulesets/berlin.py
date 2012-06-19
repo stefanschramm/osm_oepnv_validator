@@ -5,11 +5,13 @@
 
 import re
 
-from ptn import PublicTransportNetwork
+import publictransport
 
-class PublicTransportNetworkBerlin(PublicTransportNetwork):
+class PublicTransportBerlin(publictransport.PublicTransport):
 
 	def __init__(self):
+
+		publictransport.PublicTransport.__init__(self)
 
 		self.route_validators.append(self.validate_route_basics)
 		self.route_validators.append(self.validate_name)
@@ -18,16 +20,11 @@ class PublicTransportNetworkBerlin(PublicTransportNetwork):
 		self.route_master_validators.append(self.validate_name)
 		self.route_master_validators.append(self.check_color)
 
-		# TODO: remove texts
-		self.text_region = "Berlin"
-		self.text_filter = "All relations with (type=route or type=route_master) and network=VBB and (operator=BVG or operator=S-Bahn Berlin GmbH)."
-		self.text_datasource = "berlin.osm.pbf from geofabrik.de"
-
 	def ignore_relation(self, relation):
 		# defines which relations are excluded from validation
 		rid, tags, members = relation
 		# don't try to validate "...linien in Berlin"-relations
-		return rid in [18812, 174283, 53181, 174255]
+		return rid in [18812, 174283, 53181, 174255, 18813]
 
 	def validate_basics(self, relation):
 		rid, tags, members = relation

@@ -5,16 +5,14 @@ import os
 import re
 
 from mako.template import Template
-# from mako.lookup import TemplateLookup
 
 class RelationValidationOverviewCreator():
 
-	route_validators = []
-	route_master_validators = []
-
 	show_additional_tags = ['ref', 'color', 'name']
 
-	# makolookup = TemplateLookup(directories=[os.path.dirname(__file__) + '/templates/mapper'])
+	def __init__(self):
+		self.route_validators = []
+		self.route_master_validators = []
 
 	def create_relation_overview(self, template, output):
 
@@ -60,13 +58,10 @@ class RelationValidationOverviewCreator():
 			return [("ignored", "(ignoring this relation)")]
 
 		# do validation depending on type of route 
-
 		if "type" not in tags:
 			return [("missing_type", "missing type=(route_master|route)")]
-
 		if tags["type"] == "route_master":
 			errors.extend(self.validate_route_master(relation))
-
 		if tags["type"] == "route":
 			errors.extend(self.validate_route(relation))
 
@@ -74,7 +69,6 @@ class RelationValidationOverviewCreator():
 
 	def validate_route_master(self, relation):
 		errors = []
-		rid, tags, members = relation
 		# run validators defined by child-class
 		for v in self.route_master_validators:
 			errors.extend(v(relation))
@@ -128,7 +122,7 @@ class RelationValidationOverviewCreator():
 			return True
 		if len(nodes) > 900:
 			# to many nodes, would raise exception because of recursion
-			# TODO: implement better connectivity check
+			# TODO: implement better connectivity check based on node-id-intersection of ways
 			return None
 		# start dfs to check if all nodes are reachable from each other
 		reached_nodes = self.dfs(nodes[0], edges, [])
@@ -136,7 +130,6 @@ class RelationValidationOverviewCreator():
 		return len(not_reached) == 0
 
 	def dfs(self, n, edges, stop):
-		# print n
 		# depth first search (called recursively), started by validate_connectivity
 		if n in stop:
 			return []
@@ -153,14 +146,14 @@ class RelationValidationOverviewCreator():
 			# seems to be route master or something else
 			return False
 		if not ("relation", rid) in self.parents:
-			# route without route_master
+			# route without parent => without route_master
 			return True
 		for p in self.parents[("relation", rid)]:
 			if p[0] != "relation":
 				continue
 			parent_id, parent_tags, parent_members = self.relations[p[1]]
 			if "ref" in parent_tags and parent_tags["ref"] == tags["ref"] and "type" in parent_tags and parent_tags["type"] == "route_master":
-				# has correct route_master (same ref)
+				# has correct route_master (parent with type=route_master and same ref)
 				return False
 		# no correct parent: missing route_master
 		return True

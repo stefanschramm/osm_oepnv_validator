@@ -18,7 +18,7 @@ profiles = {
 	'berlin_oepnv': {
 		'shortname': 'berlin_oepnv',
 		'name': u"Berlin: ÖPNV (only BVG and S-Bahn Berlin GmbH)",
-		'rules': rulesets.berlin.PublicTransportNetworkBerlin,
+		'rules': rulesets.berlin.PublicTransportBerlin,
 		'filter': lambda r: "network" in r[1] \
 				and r[1]["network"] == "VBB" \
 				and "operator" in r[1] \
@@ -31,9 +31,9 @@ profiles = {
 		'maps': {
 			# 'internal name': ('readable name', filter function)
 			'sunetz': ("S+U-Bahn", rulesets.berlin.is_s_or_u_bahn),
-			'strassenbahn': (u"Straßenbahn (ohne MetroTram)", rulesets.berlin.is_normal_tram),
+			'strassenbahn': (u"Straßenbahn (no MetroTram)", rulesets.berlin.is_normal_tram),
 			'metrotram': ("MetroTram", rulesets.berlin.is_metro_tram),
-			'bus': ("Bus (ohne Metro- und ExpressBus)", rulesets.berlin.is_normal_bus),
+			'bus': ("Bus (no Metro- or ExpressBus)", rulesets.berlin.is_normal_bus),
 			'metrobus': ("MetroBus", rulesets.berlin.is_metro_bus),
 			'expressbus': ("ExpressBus", rulesets.berlin.is_express_bus)
 		}
@@ -41,8 +41,9 @@ profiles = {
 	'berlin_vbb': {
 		'shortname': 'berlin_vbb',
 		'name': u"Berlin: VBB (without BVG and S-Bahn Berlin GmbH)",
-		'rules': rulesets.berlin.PublicTransportNetworkBerlin,
-		'filter': lambda r: "network" in r[1] \
+		'rules': rulesets.berlin.PublicTransportBerlin,
+		'filter': lambda r: \
+				"network" in r[1] \
 				and r[1]["network"] == "VBB" \
 				and "type" in r[1] \
 				and r[1]["type"] in ["route", "route_master"]

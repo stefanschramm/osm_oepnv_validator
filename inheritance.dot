@@ -1,0 +1,18 @@
+digraph inheritance {
+	Bicycle -> RouteNetwork;
+	Bicycle -> RouteMapCreatorByWays;
+	Bicycle -> RelationValidationOverviewCreator;
+	Hiking -> RouteNetwork;
+	Hiking -> RouteMapCreatorByWays;
+	Hiking -> RelationValidationOverviewCreator;
+	Power -> RouteNetwork;
+	Power -> RouteMapCreatorByWays;
+	Power -> RelationValidationOverviewCreator;
+	Other -> RouteNetwork;
+	Other -> RelationValidationOverviewCreator;
+	PublicTransport -> RouteNetwork;
+	PublicTransport -> RouteMapCreatorByNodes;
+	PublicTransport -> RouteListCreator;
+	PublicTransport -> RelationValidationOverviewCreator;
+	PublicTransportBerlin -> PublicTransport;
+}

@@ -1,21 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
-import re
-import os
-import stat
-import datetime
-
-from imposm.parser import OSMParser
-from mako.lookup import TemplateLookup
-
-import rlc
-import rmc
-import rvoc
 import rn
+import rvoc
+import rlc
+import rmcn
 
-class PublicTransportNetwork(rn.RouteNetwork, rvoc.RelationValidationOverviewCreator, rlc.RouteListCreator, rmc.RouteMapCreator):
+class PublicTransport(rn.RouteNetwork, rvoc.RelationValidationOverviewCreator, rlc.RouteListCreator, rmcn.RouteMapCreatorByNodes):
 
 	# used by rvoc, rlc and rmc
 	# pattern for roles of nodes of routes
@@ -46,4 +37,8 @@ class PublicTransportNetwork(rn.RouteNetwork, rvoc.RelationValidationOverviewCre
 	# http://wiki.openstreetmap.org/wiki/Relation:route#Members
 	# TODO: remove platform, but allow as role
 	route_way_roles_pattern = "^(|route|forward|backward|platform:[0-9]+|platform)$"
+
+	def __init__(self):
+		rn.RouteNetwork.__init__(self)
+		rvoc.RelationValidationOverviewCreator.__init__(self)
 
