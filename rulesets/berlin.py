@@ -16,6 +16,7 @@ class PublicTransportBerlin(publictransport.PublicTransport):
 		self.route_validators.append(self.validate_route_basics)
 		self.route_validators.append(self.validate_name)
 		self.route_validators.append(self.check_color)
+		self.route_validators.append(self.check_stops_in_ways)
 		self.route_master_validators.append(self.validate_route_master_basics)
 		self.route_master_validators.append(self.validate_name)
 		self.route_master_validators.append(self.check_color)
@@ -160,6 +161,22 @@ class PublicTransportBerlin(publictransport.PublicTransport):
 			return [("wrong_color", 'color should be specified as hexadecimal value like #ff0000')]
 
 		return []
+
+	def check_stops_in_ways(self, relation):
+		rid, tags, members = relation
+		errors = []
+		nodes_in_ways = []
+		for m in members:
+			mid, typ, role = m
+			if typ == "way":
+				if not mid in self.ways or self.ways[mid] == None:
+					return [] # not in pbf - unable to check
+				nodes_in_ways.extend(self.ways[mid][2])
+		for m in members:
+			mid, typ, role = m
+			if typ == "node" and role == "stop" and mid not in nodes_in_ways:
+				errors.append(('stop_outside_way', 'node-member %i has role \'stop\' but is not part of a contained way (might rather be a platform instead)' % mid))
+		return set(errors)
 
 def is_normal_bus(r):
 	return (("route" in r[1] and r[1]["route"] == "bus") or \
