@@ -9,4 +9,4 @@
 <a rel="nofollow" href="http://www.overpass-api.de/api/sketch-line?ref=${ref | h}&amp;network=VBB&amp;style=wuppertal" title="Sketch Line">s</a>
 % endif
 <a rel="nofollow" href="http://osmrm.openstreetmap.de/gpx.jsp?relation=${osmid | h}" title="GPX">g</a>
-<a rel="nofollow" href="http://osm.kesto.de/rnc/?r=${osmid | h}&p=/^(stop:[0-9]+|stop|forward:stop:[0-9]+|backward:stop:[0-9]+|platform:[0-9]+|platform)$$/" title="Relation's Node Connector">n</a>
+<a rel="nofollow" href="http://osm.kesto.de/rnc/?r=${osmid | h}&p=${'/^(stop:[0-9]+|stop|forward:stop:[0-9]+|backward:stop:[0-9]+|platform:[0-9]+|platform)$$/' | u}" title="Relation's Node Connector">n</a>
