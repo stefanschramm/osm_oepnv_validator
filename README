@@ -7,7 +7,7 @@ Download OSM data for Berlin from geofabrik.de into data/ directory:
 wget http://download.geofabrik.de/osm/europe/germany/berlin.osm.pbf -O data/berlin.osm.pbf
 
 Start overview generation script with profile "berlin_oepnv":
-./generate_overview.py berlin_oepnv
+./generate.py berlin_oepnv
 
 The generated files can be found in the output/ directory.
 
