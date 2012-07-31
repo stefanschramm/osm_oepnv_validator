@@ -175,7 +175,7 @@ class PublicTransportBerlin(publictransport.PublicTransport):
 		for m in members:
 			mid, typ, role = m
 			if typ == "node" and role == "stop" and mid not in nodes_in_ways:
-				errors.append(('stop_outside_way', 'node-member %i has role \'stop\' but is not part of a contained way (might rather be a platform instead)' % mid))
+				errors.append(('stop_outside_way', 'node-member %i has role \'stop\' but is not part of a contained way (might rather be a platform instead)' % mid, mid))
 		return set(errors)
 
 def is_normal_bus(r):

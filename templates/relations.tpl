@@ -121,7 +121,12 @@ $(document).ready(init);
 				% if len(l['errors']) > 0:
 					<ul>
 					% for e in l['errors']:
-						<li class="${e[0] | h}">${e[1] | h}</li>
+						<li class="${e[0] | h}">
+							<abbr title="${e[1] | h}">${e[0] | h}</abbr>
+							% if e[0] == 'stop_outside_way':
+								<a href="http://www.openstreetmap.org/browse/node/${e[2] | h}">${e[2] | h}</a> <%include file="/nodetools.tpl" args="osmid=e[2]"/>
+							% endif
+						</li>
 					% endfor
 					</ul>
 				% endif
