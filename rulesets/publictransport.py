@@ -38,6 +38,8 @@ class PublicTransport(rn.RouteNetwork, rvoc.RelationValidationOverviewCreator, r
 	# TODO: remove platform, but allow as role
 	route_way_roles_pattern = "^(|route|forward|backward|platform:[0-9]+|platform)$"
 
+	route_connected_way_roles_pattern = "^(|route|forward|backward)$"
+
 	def __init__(self):
 		rn.RouteNetwork.__init__(self)
 		rvoc.RelationValidationOverviewCreator.__init__(self)

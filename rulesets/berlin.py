@@ -97,8 +97,8 @@ class PublicTransportBerlin(publictransport.PublicTransport):
 			ways = []
 			for member in members:
 				mid, typ, role = member
-				if typ == "way" and re.match(self.route_way_roles_pattern, role):
-					# (ways like platforms will be ignored due to route_way_roles_pattern)
+				if typ == "way" and re.match(self.route_connected_way_roles_pattern, role):
+					# (ways like platforms will be ignored due to route_connected_way_roles_pattern)
 					ways.append(mid)
 				if typ == "node":	
 					has_node = True
@@ -191,7 +191,7 @@ def is_metro_bus(r):
 def is_express_bus(r):
 	return (("route" in r[1] and r[1]["route"] == "bus") or \
 			("route_master" in r[1] and r[1]["route_master"] == "bus")) and \
-			("ref" in r[1] and (re.match("^X[0-9]+$", r[1]["ref"])) or (r[1]["ref"] == "TXL"))
+			("ref" in r[1] and (re.match("^X[0-9]+$", r[1]["ref"]) or r[1]["ref"] == "TXL"))
 
 def is_normal_tram(r):
 	return (("route" in r[1] and r[1]["route"] == "tram") or \
