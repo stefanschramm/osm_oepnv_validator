@@ -33,11 +33,11 @@ class PublicTransport(rn.RouteNetwork, rvoc.RelationValidationOverviewCreator, r
 	# http://wiki.openstreetmap.org/wiki/Relation:route#Members
 	route_node_roles_pattern = "^(stop:[0-9]+|stop|forward:stop:[0-9]+|backward:stop:[0-9]+|platform:[0-9]+|platform)$"
 
-	# pattern for roles of ways of routes that need to be connected to each other
+	# all allowed roles for way-members of routes
 	# http://wiki.openstreetmap.org/wiki/Relation:route#Members
-	# TODO: remove platform, but allow as role
 	route_way_roles_pattern = "^(|route|forward|backward|platform:[0-9]+|platform)$"
 
+	# pattern for roles of ways of routes that need to be connected to each other
 	route_connected_way_roles_pattern = "^(|route|forward|backward)$"
 
 	def __init__(self):
