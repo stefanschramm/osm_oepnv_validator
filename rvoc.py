@@ -145,6 +145,9 @@ class RelationValidationOverviewCreator():
 		if not "route" in tags:
 			# seems to be route master or something else
 			return False
+		if not "ref" in tags:
+			# missing ref for comparing route with route_master
+			return False
 		if not ("relation", rid) in self.parents:
 			# route without parent => without route_master
 			return True
