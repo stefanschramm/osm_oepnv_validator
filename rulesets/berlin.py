@@ -15,11 +15,11 @@ class PublicTransportBerlin(publictransport.PublicTransport):
 
 		self.route_validators.append(self.validate_route_basics)
 		self.route_validators.append(self.validate_name)
-		self.route_validators.append(self.check_color)
+		self.route_validators.append(self.check_colour)
 		self.route_validators.append(self.check_stops_in_ways)
 		self.route_master_validators.append(self.validate_route_master_basics)
 		self.route_master_validators.append(self.validate_name)
-		self.route_master_validators.append(self.check_color)
+		self.route_master_validators.append(self.check_colour)
 
 	def ignore_relation(self, relation):
 		# defines which relations are excluded from validation
@@ -142,7 +142,7 @@ class PublicTransportBerlin(publictransport.PublicTransport):
 
 		return []
 
-	def check_color(self, relation):
+	def check_colour(self, relation):
 		rid, tags, members = relation
 
 		if "type" not in tags or tags["type"] not in ["route", "route_master"]:
@@ -152,13 +152,11 @@ class PublicTransportBerlin(publictransport.PublicTransport):
 		if key not in tags:
 			return []
 
-		# TODO: it actually should be "colour" instead of "color"!
-		# http://wiki.openstreetmap.org/wiki/Key:colour
-		if tags[key] in ["subway", "tram", "light_rail"] and "color" not in tags:
-			return [("no_color", 'missing color=#... for %s' % tags[key])]
+		if tags[key] in ["subway", "tram", "light_rail"] and "colour" not in tags:
+			return [("no_colour", 'missing colour=#... for %s' % tags[key])]
 
-		if "color" in tags and not re.match("^#[a-fA-F0-9]{6}$", tags["color"]):
-			return [("wrong_color", 'color should be specified as hexadecimal value like #ff0000')]
+		if "colour" in tags and not re.match("^#[a-fA-F0-9]{6}$", tags["colour"]):
+			return [("wrong_colour", 'colour should be specified as hexadecimal value like #ff0000')]
 
 		return []
 

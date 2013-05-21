@@ -112,7 +112,7 @@ $(document).ready(init);
 					<%
 					color = l[tag] if good_color(l[tag]) else "#ffffff"
 					%>
-					<td class="monospace"><span style="background-color: ${color};">&#160;&#160;</span>&#160;${l['color'] | h}</td>
+					<td class="monospace"><span style="background-color: ${color};">&#160;&#160;</span>&#160;${l['colour'] | h}</td>
 					% else:
 					<td>${l[tag] | h}</td>
 					% endif

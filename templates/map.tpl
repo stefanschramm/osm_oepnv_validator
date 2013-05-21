@@ -35,8 +35,8 @@ function init(){
 			strokeOpacity: 0.7,
 			strokeWidth: 4
 		};
-		if (line[1]['color'] != undefined) {
-			style['strokeColor'] = line[1]['color'];
+		if (line[1]['colour'] != undefined) {
+			style['strokeColor'] = line[1]['colour'];
 		}
 		var geomPoints = [];
 		$(line[2]).each(function(index, station) {

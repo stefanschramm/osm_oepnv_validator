@@ -8,7 +8,7 @@ from mako.template import Template
 
 class RelationValidationOverviewCreator():
 
-	show_additional_tags = ['ref', 'color', 'name']
+	show_additional_tags = ['ref', 'colour', 'name']
 
 	def __init__(self):
 		self.route_validators = []
