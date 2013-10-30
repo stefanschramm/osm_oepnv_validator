@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import config
+import osmconfig as config
 
 from mako.template import Template
 

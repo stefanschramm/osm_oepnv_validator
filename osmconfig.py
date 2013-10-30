@@ -10,11 +10,30 @@ import rulesets.other
 
 script_path = os.path.dirname(__file__)
 
-output_dir = script_path + "/output"
+# output_dir = script_path + "/output"
+output_dir = "/var/www/user1/htdocs/osm.kesto.de/routes"
 data_dir = script_path + "/data"
 template_dir = script_path + "/templates"
 
 profiles = {
+	'braunschweig_oepnv': {
+		'shortname': 'braunschweig_oepnv',
+		'name': u"Braunschweiger Verkehrs-AG",
+		'rules': rulesets.berlin.PublicTransportBerlin,
+		'filter': lambda r: "network" in r[1] \
+				and r[1]["network"] == "VRB" \
+				and "operator" in r[1] \
+				and (r[1]["operator"] == "Braunschweiger Verkehrs-AG") \
+				and "type" in r[1] \
+				and r[1]["type"] in ["route", "route_master"],
+		'filter_text': 'All route and route_master relations with network=VRB and operator=Braunschweiger Verkehrs-AG',
+		'datasource': 'niedersachsen-latest.osm.pbf',
+		'stopplan': True,
+		'maps': {
+			# 'internal name': ('readable name', filter function)
+			'all': (u"all routes", lambda r: True),
+		}
+	},
 	'berlin_oepnv': {
 		'shortname': 'berlin_oepnv',
 		'name': u"Berlin: ÖPNV (only BVG and S-Bahn Berlin GmbH)",
@@ -88,7 +107,9 @@ profiles = {
 				or ("route_master" in r[1] and r[1]["route_master"] == "power")),
 		'datasource': 'berlin.osm.pbf',
 		'stopplan': False,
-		'maps': {}
+		'maps': {
+			'all': ("alle Leitungen", lambda r: True)
+		}
 	},
 	'berlin_other': {
 		'shortname': 'berlin_other',
@@ -106,6 +127,19 @@ profiles = {
 		'stopplan': False,
 		'maps': {}
 	}
+#	'germany_ice': {
+#		'shortname': 'germany_ice',
+#		'name': 'Germany: ICE-Routes',
+#		'rules': rulesets.berlin.PublicTransportBerlin,
+#		'filter': lambda r: "type" in r[1] \
+#				and r[1]["type"] in ["route", "route_master"] \
+#				and "network" in r[1] and r[1]["network"] in ["DB", "DB-ICE", "DB Fernverkehr"],
+#		'datasource': 'germany.osm.pbf',
+#		'stopplan': True,
+#		'maps': {
+#			'all': ("alle Linien", lambda r: True)
+#		}
+#	}
 #	'germany_power': {
 #		'shortname': 'germany_power',
 #		'name': 'Germany: Powerlines',
