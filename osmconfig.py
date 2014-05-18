@@ -10,8 +10,8 @@ import rulesets.other
 
 script_path = os.path.dirname(__file__)
 
-output_dir = script_path + "/output"
-# output_dir = "/var/www/user1/htdocs/osm.kesto.de/routes"
+# output_dir = script_path + "/output"
+output_dir = "/var/www/user1/htdocs/osm.kesto.de/routes"
 data_dir = script_path + "/data"
 template_dir = script_path + "/templates"
 
