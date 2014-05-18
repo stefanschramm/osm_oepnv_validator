@@ -2,11 +2,15 @@
 
 import os
 import httplib
+import sys
 
 query_dir = 'overpass_queries'
 data_dir = 'data'
 
 def main():
+
+	query_dir = sys.argv[1]
+	data_dir = sys.argv[2]
 
 	for fn in os.listdir(query_dir):
 		f = open(query_dir + os.sep + fn)
