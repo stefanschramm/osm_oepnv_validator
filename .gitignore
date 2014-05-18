@@ -1,3 +1,4 @@
 *.pyc
 *.pbf
 _old
+data/*.xml
