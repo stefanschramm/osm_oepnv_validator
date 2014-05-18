@@ -1,0 +1,12 @@
+<union>
+  <query type="relation">
+    <has-kv k="type" v="route_master"/>
+    <has-kv k="network" v="VBB"/>
+  </query>
+  <query type="relation">
+    <has-kv k="type" v="route"/>
+    <has-kv k="network" v="VBB"/>
+  </query>
+  <recurse type="down"/>
+</union>
+<print />
