@@ -51,7 +51,7 @@ def generate_profile(profile):
 	datasources = [profile['datasource']] if type(profile['datasource']) == str else profile['datasource']
 	for filename in datasources:
 		# TODO: check if mixing sources (e.g. berlin + brandenburg) works (data consistency...)
-		rn.load_network(pbf=config.data_dir + "/" + filename, \
+		rn.load_network(xml=config.data_dir + "/" + filename, \
 				filterfunction=profile['filter'])
 
 	rn.create_relation_overview(template=config.template_dir + "/relations.tpl", \

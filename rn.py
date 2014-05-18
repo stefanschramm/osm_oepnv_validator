@@ -24,8 +24,9 @@ import os
 import stat
 import datetime
 
-from imposm.parser import OSMParser
 from mako.lookup import TemplateLookup
+
+import xml.etree.cElementTree as ET
 
 class RouteNetwork(object):
 
@@ -64,7 +65,7 @@ class RouteNetwork(object):
 		# dict of parent relations; index: id of relation to get parent relations for
 		self.parents = {}
 
-	def load_network(self, pbf, filterfunction=lambda r: True):
+	def load_network(self, xml, filterfunction=lambda r: True):
 
 		# read data of public transport network
 		# required for validating and displaying
@@ -73,24 +74,50 @@ class RouteNetwork(object):
 
 		# get modification time of data source
 		# TODO: how to determine time when reading from multiple sources?
-		self.mtime = datetime.datetime.fromtimestamp(os.stat(pbf)[stat.ST_MTIME])
+		self.mtime = datetime.datetime.fromtimestamp(os.stat(xml)[stat.ST_MTIME])
 
-		# first pass:
-		# collect all interesting relations
-		print "Collecting relations..."
-		p = OSMParser(concurrency=4, relations_callback=self.relations_cb)
-		p.parse(pbf)
+		root = ET.parse(xml).getroot()
 
-		# second pass:
-		# collect ways for these relations
-		print "Collecting %i ways..." % len(self.ways)
-		p = OSMParser(concurrency=4, ways_callback=self.ways_cb)
-		p.parse(pbf)
+		self.relations_cb(self.iter_relations(root))
+		self.ways_cb(self.iter_ways(root))
+		self.nodes_cb(self.iter_nodes(root))
 
-		# collect nodes for collected relations and ways
-		print "Collecting %i nodes..." % len(self.nodes)
-		p = OSMParser(concurrency=4, nodes_callback=self.nodes_cb)
-		p.parse(pbf)
+	def iter_relations(self, root):
+		for e in root:
+			if e.tag != "relation":
+				continue
+			members = []
+			for m in e:
+				if m.tag != "member":
+					continue
+				members.append((int(m.attrib["ref"]), m.attrib["type"], m.attrib["role"]))
+			yield (int(e.attrib["id"]), self.get_kvs(e), members)
+
+	def iter_nodes(self, root):
+		for e in root:
+			if e.tag != "node":
+				continue
+			yield (int(e.attrib["id"]), self.get_kvs(e), (float(e.attrib["lon"]), float(e.attrib["lat"])))
+
+	def iter_ways(self, root):
+		for e in root:
+			if e.tag != "way":
+				continue
+			nodes = []
+			for n in e:
+				if n.tag != "nd":
+					continue
+				nodes.append(int(n.attrib["ref"]))
+			yield (int(e.attrib["id"]), self.get_kvs(e), nodes)
+
+	@staticmethod
+	def get_kvs(element):
+		kvs = {}
+		for kv in element:
+			if kv.tag != "tag":
+				continue
+			kvs[kv.attrib["k"]] = kv.attrib["v"]
+		return kvs
 
 	def relations_cb(self, relations):
 		# callback: collect routes to validate
