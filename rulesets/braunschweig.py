@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# berlin.py - validation rules for public transport in Berlin
+# braunschweig.py - validation rules for public transport in Braunschweig
 
 import re
 
 import publictransport
 
-class PublicTransportBerlin(publictransport.PublicTransport):
+class PublicTransportBraunschweig(publictransport.PublicTransport):
 
 	def __init__(self):
 
@@ -24,8 +24,7 @@ class PublicTransportBerlin(publictransport.PublicTransport):
 	def ignore_relation(self, relation):
 		# defines which relations are excluded from validation
 		rid, tags, members = relation
-		# don't try to validate "...linien in Berlin"-relations
-		return rid in [18812, 174283, 53181, 174255, 18813]
+		return False # ignore none
 
 	def validate_basics(self, relation):
 		rid, tags, members = relation
@@ -34,9 +33,6 @@ class PublicTransportBerlin(publictransport.PublicTransport):
 			main_key = key.split(":")[0]
 			if not main_key in self.valid_keys:
 				errors.append(("unknown_key", "unknown key: %s" % key))
-
-		if "network" in tags and tags["network"] == "VBB":
-				errors.append(("obsolete_network", "obsolete network tag"))
 
 	def validate_route_master_basics(self, relation):
 		rid, tags, members = relation
@@ -107,15 +103,10 @@ class PublicTransportBerlin(publictransport.PublicTransport):
 					has_node = True
 					if not re.match(self.route_node_roles_pattern, role):
 						errors.append(("unexpected_role", "route with node-member with a strange role: %s" % ("(empty)" if role == "" else role)))
-			if len(ways) <= 0:
-				errors.append(("no_ways", "route without ways or type=route instead of type=route_master"))
-			else:
+			if len(ways) > 0:
 				if self.validate_connectivity(ways) == False:
 					errors.append(("disconnected_ways", "ways of route are not completely connected (or have strange roles)"))
 				# (if validate_connectivity returns None, we can't validate this route because parts of it are outside of our pbf-file)
-			if not has_node:
-				# TODO: this would be OK, if all stops are modeled as relations
-				errors.append(("no_nodes", "route without nodes (stops missing?)"))
 		return errors
 
 
@@ -132,16 +123,8 @@ class PublicTransportBerlin(publictransport.PublicTransport):
 		if "name" not in tags:
 			return []
 
-		if tags[key] == "bus" and not re.match("^Buslinie ", tags["name"]):
-				return [("wrong_name", u'name does not match convention ("Buslinie ...")')]
-		if tags[key] == "ferry" and not re.match(u"^Fähre ", tags["name"]):
-				return [("wrong_name", u'name does not match convention ("Fähre ...")')]
-		if tags[key] == "tram" and not re.match(u"^Straßenbahnlinie ", tags["name"]):
-				return [("wrong_name", u'name does not match convention ("Straßenbahnlinie ...")')]
-		if tags[key] == "subway" and not re.match(u"^U-Bahnlinie ", tags["name"]):
-				return [("wrong_name", u'name does not match convention ("U-Bahnlinie ...")')]
-		if tags[key] == "light_rail" and not re.match(u"^S-Bahnlinie ", tags["name"]):
-				return [("wrong_name", u'name does not match convention ("U-Bahnlinie ...")')]
+		if not re.match("^Linie ", tags["name"]):
+			return [("wrong_name", u'name does not match convention ("Linie ...")')]
 
 		return []
 
@@ -155,7 +138,7 @@ class PublicTransportBerlin(publictransport.PublicTransport):
 		if key not in tags:
 			return []
 
-		if tags[key] in ["subway", "tram", "light_rail"] and "colour" not in tags:
+		if "type" in tags and tags["type"] == "router_master" and tags[key] in ["subway", "tram", "light_rail"] and "colour" not in tags:
 			return [("no_colour", 'missing colour=#... for %s' % tags[key])]
 
 		if "colour" in tags and not re.match("^#[a-fA-F0-9]{6}$", tags["colour"]):

@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import os
+import rulesets.publictransport
 import rulesets.berlin
+import rulesets.braunschweig
 import rulesets.hiking
 import rulesets.bicycle
 import rulesets.power
@@ -18,15 +20,31 @@ template_dir = script_path + "/templates"
 profiles = {
 	'braunschweig_oepnv': {
 		'shortname': 'braunschweig_oepnv',
-		'name': u"Braunschweiger Verkehrs-AG",
-		'rules': rulesets.berlin.PublicTransportBerlin,
+		'name': u"Braunschweiger Verkehrs-GmbH",
+		'rules': rulesets.braunschweig.PublicTransportBraunschweig,
 		'filter': lambda r: "network" in r[1] \
 				and r[1]["network"] == "VRB" \
 				and "operator" in r[1] \
-				and (r[1]["operator"] == "Braunschweiger Verkehrs-AG") \
+				and (r[1]["operator"] == "Braunschweiger Verkehrs-GmbH") \
 				and "type" in r[1] \
 				and r[1]["type"] in ["route", "route_master"],
 		'filter_text': 'All route and route_master relations with network=VRB and operator=Braunschweiger Verkehrs-AG',
+		'datasource': 'vrb.overpass.xml',
+		'stopplan': True,
+		'maps': {
+			# 'internal name': ('readable name', filter function)
+			'all': (u"all routes", lambda r: True),
+		}
+	},
+	'braunschweig_vrb': {
+		'shortname': 'braunschweig_vrb',
+		'name': u"Braunschweig - VRB",
+		'rules': rulesets.braunschweig.PublicTransportBraunschweig,
+		'filter': lambda r: "network" in r[1] \
+				and r[1]["network"] == "VRB" \
+				and "type" in r[1] \
+				and r[1]["type"] in ["route", "route_master"],
+		'filter_text': 'All route and route_master relations with network=VRB',
 		'datasource': 'vrb.overpass.xml',
 		'stopplan': True,
 		'maps': {
@@ -39,7 +57,7 @@ profiles = {
 		'name': u"Berlin: ÖPNV (only BVG and S-Bahn Berlin GmbH)",
 		'rules': rulesets.berlin.PublicTransportBerlin,
 		'filter': lambda r: "network" in r[1] \
-				and r[1]["network"] == "VBB" \
+				and (r[1]["network"] == "Verkehrsverbund Berlin-Brandenburg" or r[1]["network"] == "VBB") \
 				and "operator" in r[1] \
 				and (r[1]["operator"] == "BVG" or r[1]["operator"] == "S-Bahn Berlin GmbH") \
 				and "type" in r[1] \
@@ -60,10 +78,10 @@ profiles = {
 	'berlinbrandenburg_vbb': {
 		'shortname': 'berlinbrandenburg_vbb',
 		'name': u"Berlin/Brandenburg: VBB (excluding BVG and S-Bahn Berlin GmbH)",
-		'rules': rulesets.berlin.PublicTransportBerlin,
+		'rules': rulesets.publictransport.PublicTransport,
 		'filter': lambda r: \
 				"network" in r[1] \
-				and r[1]["network"] == "VBB" \
+				and (r[1]["network"] == "Verkehrsverbund Berlin-Brandenburg" or r[1]["network"] == "VBB") \
 				and "type" in r[1] \
 				and r[1]["type"] in ["route", "route_master"]
 				and (not "operator" in r[1] or r[1]["operator"] not in ["BVG", "S-Bahn Berlin GmbH"]),

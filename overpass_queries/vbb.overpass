@@ -1,11 +1,11 @@
 <union>
   <query type="relation">
     <has-kv k="type" v="route_master"/>
-    <has-kv k="network" v="VBB"/>
+    <has-kv k="network" regv="VBB|Verkehrsverbund Berlin-Brandenburg"/>
   </query>
   <query type="relation">
     <has-kv k="type" v="route"/>
-    <has-kv k="network" v="VBB"/>
+    <has-kv k="network" regv="VBB|Verkehrsverbund Berlin-Brandenburg"/>
   </query>
   <recurse type="down"/>
 </union>
