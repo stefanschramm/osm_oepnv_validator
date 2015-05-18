@@ -1,15 +1,15 @@
 Tools for validating OSM public transport relations in Berlin
 
 Install required Python modules (in Debian Wheezy):
-apt-get install python-mako python-protobuf python-imposm-parser python-simplejson
+apt-get install python-mako python-simplejson
 
-Download OSM data for Berlin from geofabrik.de into data/ directory:
-wget http://download.geofabrik.de/openstreetmap/europe/germany/berlin.osm.pbf -O data/berlin.osm.pbf
+Fetch data from Overpass-API:
+./fetch_overpass_data.py overpass_queries/ data/
+
+Adjust output_dir in osmconfig.py to your needs.
 
 Start overview generation script with profile "berlin_oepnv":
 ./generate.py berlin_oepnv
-
-The generated files can be found in the output/ directory.
 
 Extract OpenLayers-2.11 into output/ directory for viewing the maps:
 wget http://openlayers.org/download/OpenLayers-2.11.tar.gz
