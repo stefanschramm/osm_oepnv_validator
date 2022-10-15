@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os
-import httplib
+import requests
 import sys
 import time
 
@@ -18,12 +18,10 @@ def main():
 		query = f.read()
 		f.close()
 
-		c = httplib.HTTPConnection("overpass-api.de")
-		c.request("POST", "/api/interpreter", "data=" + query)
+		r = requests.post("http://overpass-api.de/api/interpreter", data={"data": query})
 
 		f = open(data_dir + os.sep + fn + ".xml", 'w')
-		r = c.getresponse()
-		f.write(r.read())
+		f.write(r.text)
 		f.close()
 		time.sleep(10)
 
