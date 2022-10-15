@@ -138,8 +138,8 @@ class PublicTransportBerlin(publictransport.PublicTransport):
         return [("wrong_name", u'name does not match convention ("Fähre ...")')]
     if tags[key] == "tram" and not re.match(u"^Tram ", tags["name"]):
         return [("wrong_name", u'name does not match convention ("Tram ...")')]
-    if tags[key] == "subway" and not re.match(u"^U-Bahnlinie ", tags["name"]):
-        return [("wrong_name", u'name does not match convention ("U-Bahnlinie ...")')]
+    if tags[key] == "subway" and not re.match(u"^U[0-9]+: ", tags["name"]):
+        return [("wrong_name", u'name does not match convention ("Un: ...")')]
     if tags[key] == "light_rail" and not re.match(u"^S-Bahnlinie ", tags["name"]):
         return [("wrong_name", u'name does not match convention ("U-Bahnlinie ...")')]
 
