@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
-import re
-
 from mako.template import Template
 
 class RelationValidationOverviewCreator():

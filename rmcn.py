@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import re
-
 from mako.template import Template
 
 class RouteMapCreatorByNodes():

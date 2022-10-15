@@ -26,14 +26,6 @@ class PublicTransportHalle(publictransport.PublicTransport):
     rid, tags, members = relation
     return False # ignore none
 
-  def validate_basics(self, relation):
-    rid, tags, members = relation
-
-    for key in tags:
-      main_key = key.split(":")[0]
-      if not main_key in self.valid_keys:
-        errors.append(("unknown_key", "unknown key: %s" % key))
-
   def validate_route_master_basics(self, relation):
     rid, tags, members = relation
     errors = []

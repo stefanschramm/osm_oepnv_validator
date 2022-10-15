@@ -27,17 +27,6 @@ class PublicTransportBerlin(publictransport.PublicTransport):
     # don't try to validate "...linien in Berlin"-relations
     return rid in [18812, 174283, 53181, 174255, 18813]
 
-  def validate_basics(self, relation):
-    rid, tags, members = relation
-
-    for key in tags:
-      main_key = key.split(":")[0]
-      if not main_key in self.valid_keys:
-        errors.append(("unknown_key", "unknown key: %s" % key))
-
-    if "network" in tags and tags["network"] == "VBB":
-        errors.append(("obsolete_network", "obsolete network tag"))
-
   def validate_route_master_basics(self, relation):
     rid, tags, members = relation
     errors = []
