@@ -1,0 +1,12 @@
+<union>
+  <query type="relation">
+    <has-kv k="type" v="route_master"/>
+    <has-kv k="operator" v="Braunschweiger Verkehrs-GmbH"/>
+  </query>
+  <query type="relation">
+    <has-kv k="type" v="route"/>
+    <has-kv k="operator" v="Braunschweiger Verkehrs-GmbH"/>
+  </query>
+  <recurse type="down"/>
+</union>
+<print />

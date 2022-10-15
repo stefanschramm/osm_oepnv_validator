@@ -123,8 +123,8 @@ class PublicTransportBraunschweig(publictransport.PublicTransport):
 		if "name" not in tags:
 			return []
 
-		if not re.match("^Linie ", tags["name"]):
-			return [("wrong_name", u'name does not match convention ("Linie ...")')]
+		if not re.match("^(Bus|Tram) ", tags["name"]):
+			return [("wrong_name", u'name does not match convention ("Bus/Tram ...")')]
 
 		return []
 

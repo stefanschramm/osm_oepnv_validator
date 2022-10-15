@@ -3,6 +3,7 @@
 import os
 import httplib
 import sys
+import time
 
 query_dir = 'overpass_queries'
 data_dir = 'data'
@@ -24,6 +25,7 @@ def main():
 		r = c.getresponse()
 		f.write(r.read())
 		f.close()
+		time.sleep(10)
 
 if __name__ == '__main__':
 	main()

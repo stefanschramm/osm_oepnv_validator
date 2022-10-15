@@ -47,6 +47,7 @@ function init(){
 		var feature = new OpenLayers.Feature.Vector(geometry, null, style);
 		lineLayer.addFeatures([feature]);
 	});
+	map.zoomToExtent(lineLayer.getDataExtent());
 
 }
 

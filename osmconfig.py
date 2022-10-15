@@ -22,18 +22,17 @@ profiles = {
 		'shortname': 'braunschweig_oepnv',
 		'name': u"Braunschweiger Verkehrs-GmbH",
 		'rules': rulesets.braunschweig.PublicTransportBraunschweig,
-		'filter': lambda r: "network" in r[1] \
-				and r[1]["network"] == "VRB" \
-				and "operator" in r[1] \
+		'filter': lambda r: "operator" in r[1] \
 				and (r[1]["operator"] == "Braunschweiger Verkehrs-GmbH") \
 				and "type" in r[1] \
 				and r[1]["type"] in ["route", "route_master"],
-		'filter_text': 'All route and route_master relations with network=VRB and operator=Braunschweiger Verkehrs-AG',
-		'datasource': 'vrb.overpass.xml',
+		'filter_text': 'All route and route_master relations with operator=Braunschweiger Verkehrs-GmbH',
+		'datasource': 'braunschweig.overpass.xml',
 		'stopplan': True,
 		'maps': {
 			# 'internal name': ('readable name', filter function)
-			'all': (u"all routes", lambda r: True),
+			'strassenbahn': (u"Straßenbahn", rulesets.publictransport.is_tram),
+			'bus': ("Bus", rulesets.publictransport.is_bus)
 		}
 	},
 	'braunschweig_vrb': {
@@ -49,7 +48,7 @@ profiles = {
 		'stopplan': True,
 		'maps': {
 			# 'internal name': ('readable name', filter function)
-			'all': (u"all routes", lambda r: True),
+			'all': (u"all routes", lambda r: True)
 		}
 	},
 	'berlin_oepnv': {
@@ -57,9 +56,9 @@ profiles = {
 		'name': u"Berlin: ÖPNV (only BVG and S-Bahn Berlin GmbH)",
 		'rules': rulesets.berlin.PublicTransportBerlin,
 		'filter': lambda r: "network" in r[1] \
-				and (r[1]["network"] == "Verkehrsverbund Berlin-Brandenburg" or r[1]["network"] == "VBB") \
+				and (r[1]["network"] in ["Verkehrsverbund Berlin-Brandenburg", "VBB"]) \
 				and "operator" in r[1] \
-				and (r[1]["operator"] == "BVG" or r[1]["operator"] == "S-Bahn Berlin GmbH") \
+				and (r[1]["operator"] in ["BVG", "S-Bahn Berlin GmbH", "Berliner Verkehrsbetriebe"]) \
 				and "type" in r[1] \
 				and r[1]["type"] in ["route", "route_master"],
 		'filter_text': 'All route and route_master relations with network=VBB and (operator=BVG or operator=S-Bahn Berlin GmbH)',

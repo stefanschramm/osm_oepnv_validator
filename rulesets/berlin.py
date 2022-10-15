@@ -132,12 +132,12 @@ class PublicTransportBerlin(publictransport.PublicTransport):
 		if "name" not in tags:
 			return []
 
-		if tags[key] == "bus" and not re.match("^Buslinie ", tags["name"]):
-				return [("wrong_name", u'name does not match convention ("Buslinie ...")')]
+		if tags[key] == "bus" and not re.match("^Bus ", tags["name"]):
+				return [("wrong_name", u'name does not match convention ("Bus ...")')]
 		if tags[key] == "ferry" and not re.match(u"^Fähre ", tags["name"]):
 				return [("wrong_name", u'name does not match convention ("Fähre ...")')]
-		if tags[key] == "tram" and not re.match(u"^Straßenbahnlinie ", tags["name"]):
-				return [("wrong_name", u'name does not match convention ("Straßenbahnlinie ...")')]
+		if tags[key] == "tram" and not re.match(u"^Tram ", tags["name"]):
+				return [("wrong_name", u'name does not match convention ("Tram ...")')]
 		if tags[key] == "subway" and not re.match(u"^U-Bahnlinie ", tags["name"]):
 				return [("wrong_name", u'name does not match convention ("U-Bahnlinie ...")')]
 		if tags[key] == "light_rail" and not re.match(u"^S-Bahnlinie ", tags["name"]):
