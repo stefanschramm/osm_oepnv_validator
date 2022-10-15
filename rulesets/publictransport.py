@@ -31,7 +31,7 @@ class PublicTransport(rn.RouteNetwork, rvoc.RelationValidationOverviewCreator, r
 
   # pattern for roles of nodes of routes
   # http://wiki.openstreetmap.org/wiki/Relation:route#Members
-  route_node_roles_pattern = "^(stop:[0-9]+|stop|forward:stop:[0-9]+|backward:stop:[0-9]+|platform:[0-9]+|platform)$"
+  route_node_roles_pattern = "^(stop:[0-9]+|stop|stop_entry_only|stop_exit_only|forward:stop:[0-9]+|backward:stop:[0-9]+|platform:[0-9]+|platform)$"
 
   # all allowed roles for way-members of routes
   # http://wiki.openstreetmap.org/wiki/Relation:route#Members
