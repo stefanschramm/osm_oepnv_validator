@@ -5,7 +5,7 @@
 
 import re
 
-import publictransport
+from . import publictransport
 
 class PublicTransportBerlin(publictransport.PublicTransport):
 

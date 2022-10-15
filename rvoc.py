@@ -16,7 +16,7 @@ class RelationValidationOverviewCreator():
 
 	def create_relation_overview(self, template, output):
 
-		print "Validating relations..."
+		print("Validating relations...")
 
 		# create list that contains all important information for usage in template
 		lines_tpl = []
@@ -43,7 +43,7 @@ class RelationValidationOverviewCreator():
 		tpl = Template(filename=template, default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace', lookup=self.makolookup)
 		content = tpl.render(lines=lines_tpl, mtime=self.mtime, profile=self.profile, additional_tags=self.show_additional_tags)
 		f = open(output, 'w')
-		f.write(content)
+		f.write(content.decode('utf-8'))
 		f.close()
 
 	def validate(self, relation):
@@ -52,7 +52,7 @@ class RelationValidationOverviewCreator():
 		rid, tags, members = relation
 		errors = []
 
-		print "Validating %s..." % rid
+		print("Validating %s..." % rid)
 
 		if self.ignore_relation(relation):
 			return [("ignored", "(ignoring this relation)")]

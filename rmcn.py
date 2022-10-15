@@ -31,6 +31,6 @@ class RouteMapCreatorByNodes():
 		tpl = Template(filename=template, default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace', lookup=self.makolookup)
 		content = tpl.render(lines=lines, mtime=self.mtime, profile=self.profile, mapkey=mapkey)
 		f = open(output, 'w')
-		f.write(content)
+		f.write(content.decode('utf-8'))
 		f.close()
 

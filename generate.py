@@ -7,13 +7,13 @@ import osmconfig as config
 from mako.template import Template
 
 def print_available_profiles():
-	print "Available profiles:"
-	print "\n".join(config.profiles.keys())
+	print("Available profiles:")
+	print("\n".join(config.profiles.keys()))
 
 def main():
 
 	if len(sys.argv) > 2:
-		print "Usage: %s [profilename]" % sys.argv[0]
+		print("Usage: %s [profilename]" % sys.argv[0])
 		print_available_profiles()
 		return
 
@@ -24,15 +24,15 @@ def main():
 		else:
 			# generate specific profile
 			if sys.argv[1] not in config.profiles:
-				print 'Unknown profile "%s".' % sys.argv[1]
+				print('Unknown profile "%s".' % sys.argv[1])
 				print_available_profiles()
 				return
 			generate_profile(config.profiles[sys.argv[1]])
 	else:
-		print "Generating index and all profiles..."
+		print("Generating index and all profiles...")
 		generate_index()
 		for profile_name in config.profiles.keys():
-			print "Generating profile \"%s\"..." % profile_name
+			print("Generating profile \"%s\"..." % profile_name)
 			generate_profile(config.profiles[profile_name])
 
 def generate_index():
@@ -40,7 +40,7 @@ def generate_index():
 		tpl = Template(filename=config.template_dir + "/index.tpl", default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace')
 		content = tpl.render(profiles=config.profiles)
 		f = open(config.output_dir + "/index.htm", 'w')
-		f.write(content)
+		f.write(content.decode('utf-8'))
 		f.close()
 
 def generate_profile(profile):
@@ -64,7 +64,7 @@ def generate_profile(profile):
 
 	# create maps
 	for m in profile['maps']:
-		print "Creating map %s..." % m
+		print("Creating map %s..." % m)
 		rn.create_network_map(template=config.template_dir + "/map.tpl", \
 				output=config.output_dir + ("/%s_map_%s.htm" % (profile['shortname'], m)), \
 				filterfunction=profile['maps'][m][1], \

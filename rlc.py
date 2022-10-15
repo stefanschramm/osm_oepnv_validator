@@ -15,14 +15,14 @@ class RouteListCreator():
 
 		lines = []
 
-                for relation in sorted(self.relations.values(), key=self.get_sortkey):
+		for relation in sorted(self.relations.values(), key=self.get_sortkey):
 			rid, tags, members = relation
 			if "type" not in tags or tags["type"] != "route_master" or "ref" not in tags:
 				continue
 			if not filterfunction(relation):
 				continue
 			routes = filter(lambda m: m[0] in self.relations and m[1] == "relation", members)
-			routes = map(lambda m: self.relations[m[0]], routes)
+			routes = list(map(lambda m: self.relations[m[0]], routes))
 
 			pairs = []
 			for i in range(0, len(routes)):
@@ -43,10 +43,10 @@ class RouteListCreator():
 				# get stops for each direction
 				rid1, tags1, members1 = pair[0]
 				stops1 = filter(lambda m: re.match(self.route_node_roles_pattern, m[2]), members1)
-				stops1 = map(lambda s: s[0], stops1)
+				stops1 = list(map(lambda s: s[0], stops1))
 				rid2, tags2, members2 = pair[1]
 				stops2 = filter(lambda m: re.match(self.route_node_roles_pattern, m[2]), members2)
-				stops2 = map(lambda s: s[0], stops2)
+				stops2 = list(map(lambda s: s[0], stops2))
 				stops2.reverse()
 
 				# collect names and changes for each direction
@@ -129,6 +129,6 @@ class RouteListCreator():
 		tpl = Template(filename=template, default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace', lookup=self.makolookup)
 		content = tpl.render(lines=lines, mtime=self.mtime, profile=self.profile)
 		f = open(output, 'w')
-		f.write(content)
+		f.write(content.decode('utf-8'))
 		f.close()
 
