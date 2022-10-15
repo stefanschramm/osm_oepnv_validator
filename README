@@ -1,7 +1,7 @@
-Tools for validating OSM public transport relations in Berlin
+Tools for validating OSM public transport relations
 
 Install required Python modules (in Debian Wheezy):
-apt-get install python-mako python-simplejson
+apt install python3-mako python3-simplejson
 
 Fetch data from Overpass-API:
 ./fetch_overpass_data.py overpass_queries/ data/
