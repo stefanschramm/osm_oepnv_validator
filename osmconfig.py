@@ -90,6 +90,23 @@ profiles = {
       'all': ("alle Linien", lambda r: True)
     }
   },
+  'halle': {
+    'shortname': 'halle',
+    'name': u"HAVAG",
+    'rules': rulesets.braunschweig.PublicTransportBraunschweig,
+    'filter': lambda r: "operator" in r[1] \
+        and (r[1]["operator"] == "HAVAG") \
+        and "type" in r[1] \
+        and r[1]["type"] in ["route", "route_master"],
+    'filter_text': 'All route and route_master relations with operator=HAVAG',
+    'datasource': 'halle.overpass.xml',
+    'stopplan': True,
+    'maps': {
+      # 'internal name': ('readable name', filter function)
+      'strassenbahn': (u"Straßenbahn", rulesets.publictransport.is_tram),
+      'bus': ("Bus", rulesets.publictransport.is_bus)
+    }
+  },
 #  'berlin_bicycle': {
 #    'shortname': 'berlin_bicycle',
 #    'name': 'Berlin: Bicycle Routes',
