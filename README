@@ -1,6 +1,8 @@
 Tools for validating OSM public transport relations
 
-Install required Python modules (in Debian Wheezy):
+Used by https://osm.kesto.de/routes/
+
+Install required Python modules:
 apt install python3-mako python3-simplejson
 
 Fetch data from Overpass-API:
@@ -10,8 +12,3 @@ Adjust output_dir in osmconfig.py to your needs.
 
 Start overview generation script with profile "berlin_oepnv":
 ./generate.py berlin_oepnv
-
-Extract OpenLayers-2.11 into output/ directory for viewing the maps:
-wget http://openlayers.org/download/OpenLayers-2.11.tar.gz
-tar -zxvf OpenLayers-2.11.tar.gz -C output/
-

@@ -66,3 +66,7 @@ input {
 .indexlink {
 	float:right;
 }
+#map {
+	width: 600px;
+	height: 500px;
+}
