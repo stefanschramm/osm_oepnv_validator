@@ -10,8 +10,8 @@
 <body>
 	<h1>OSM Route Tools - Index</h1>
 	<ul>
-	% for profile in sorted(profiles.values(), key=lambda p: p['name']):
-		<li><a href="${profile['shortname'] | h}.htm">${profile['name'] | h}</a></li>
+	% for profile in sorted(profiles, key=lambda p: p.name):
+		<li><a href="${profile.name | h}.htm">${profile.label | h}</a></li>
 	% endfor
 	</ul>
 </body>

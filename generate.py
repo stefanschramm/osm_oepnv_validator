@@ -1,76 +1,52 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
+import os
 import sys
-import osmconfig as config
+from re import I
 
-from mako.template import Template
-
-def print_available_profiles():
-  print("Available profiles:")
-  print("\n".join(config.profiles.keys()))
+import context
+import network
+import profile_repository
+import downloader
+import generators
 
 def main():
+  
+  profiles = profile_repository.get_profiles()
 
   if len(sys.argv) > 2:
     print("Usage: %s [profilename]" % sys.argv[0])
-    print_available_profiles()
+    print("Available profiles:")
+    print("\n".join(map(lambda p: p.name, profiles)))
     return
+  
+  if len(sys.argv) < 2 or sys.argv[1] == 'index':
+    print('Generating index...')
+    generators.generate_index(profiles)
 
-  if len(sys.argv) == 2:
-    if sys.argv[1] == "index":
-      generate_index()
-      return
-    else:
-      # generate specific profile
-      if sys.argv[1] not in config.profiles:
-        print('Unknown profile "%s".' % sys.argv[1])
-        print_available_profiles()
-        return
-      generate_profile(config.profiles[sys.argv[1]])
-  else:
-    print("Generating index and all profiles...")
-    generate_index()
-    for profile_name in config.profiles.keys():
-      print("Generating profile \"%s\"..." % profile_name)
-      generate_profile(config.profiles[profile_name])
+  for p in profiles:
+    if len(sys.argv) == 2 and sys.argv[1] != p.name:
+      continue
+    generate_profile(p)
 
-def generate_index():
-    # write template
-    tpl = Template(filename=config.template_dir + "/index.tpl", default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace')
-    content = tpl.render(profiles=config.profiles)
-    f = open(config.output_dir + "/index.htm", 'w')
-    f.write(content.decode('utf-8'))
-    f.close()
+def generate_profile(p):
+  print('Generating profile %s...' % p.name)
+  if not os.path.isfile(context.data_file_path(p)):
+    print('Downloading %s...' % p.name)
+    downloader.download_data(p)
 
-def generate_profile(profile):
-  rn = profile['rules']()
-  rn.profile = profile
+  print('Reading network %s...' % p.name)
+  n = network.create_from_profile(p)
+  
+  print('Generating relation overview %s...' % p.name)
+  generators.generate_relation_overview(n, p)
 
-  # load data
-  datasources = [profile['datasource']] if type(profile['datasource']) == str else profile['datasource']
-  for filename in datasources:
-    # TODO: check if mixing sources (e.g. berlin + brandenburg) works (data consistency...)
-    rn.load_network(xml=config.data_dir + "/" + filename, \
-        filterfunction=profile['filter'])
+  if p.stopplan:
+    generators.generate_stop_plan(n, p)
 
-  rn.create_relation_overview(template=config.template_dir + "/relations.tpl", \
-      output=config.output_dir + ("/%s.htm" % profile['shortname']))
+  for map in p.maps:
+    print('Generating map %s_%s...' % (p.name, map))
+    generators.generate_network_map(n, p, map)
 
-  # create stop plan
-  if profile['stopplan']:
-    rn.create_route_list(template=config.template_dir + "/routes.tpl",
-        output=config.output_dir + ("/%s_lines.htm" % profile['shortname']))
-
-  # create maps
-  for m in profile['maps']:
-    print("Creating map %s..." % m)
-    rn.create_network_map(template=config.template_dir + "/map.tpl", \
-        output=config.output_dir + ("/%s_map_%s.htm" % (profile['shortname'], m)), \
-        filterfunction=profile['maps'][m][1], \
-        mapkey=m)
-  del rn
-
-if __name__ == "__main__":
+if __name__ == '__main__':
   main()
-

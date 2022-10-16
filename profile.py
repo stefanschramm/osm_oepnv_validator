@@ -1,14 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-import rn
-import rvoc
-import rlc
-import rmcn
-
-class PublicTransport(rn.RouteNetwork, rvoc.RelationValidationOverviewCreator, rlc.RouteListCreator, rmcn.RouteMapCreatorByNodes):
-
-  # used by rvoc, rlc and rmc
+class PublicTransportProfile():
   # pattern for roles of nodes of routes
   # http://wiki.openstreetmap.org/wiki/Relation:route#Members
   route_node_roles_pattern = "^(stop:[0-9]+|stop|forward:stop:[0-9]+|backward:stop:[0-9]+|platform:[0-9]+|platform)$"
@@ -40,15 +30,5 @@ class PublicTransport(rn.RouteNetwork, rvoc.RelationValidationOverviewCreator, r
   # pattern for roles of ways of routes that need to be connected to each other
   route_connected_way_roles_pattern = "^(|route|forward|backward)$"
 
-  def __init__(self):
-    rn.RouteNetwork.__init__(self)
-    rvoc.RelationValidationOverviewCreator.__init__(self)
-
-def is_bus(r):
-  return (("route" in r[1] and r[1]["route"] == "bus") or \
-      ("route_master" in r[1] and r[1]["route_master"] == "bus"))
-
-def is_tram(r):
-  return (("route" in r[1] and r[1]["route"] == "tram") or \
-      ("route_master" in r[1] and r[1]["route_master"] == "tram"))
-
+  ignore_relation = lambda relation: False
+  

@@ -49,7 +49,8 @@ $(document).ready(init);
 <body>
 	<%include file="/header.tpl" args="page='relations'" />
 	<p>For relations which contain members outside of the data source no connectivity validation is done and member counts might be wrong.</p>
-	<p><strong>Data source:</strong> ${str(profile['datasource']) | h}</p>
+	## TODO:
+	## <p><strong>Data source:</strong> ${str(profile['datasource']) | h}</p>
 	<p><strong>Last update:</strong> ${mtime | h}</p>
 	<div><strong>Format:</strong> <input type="submit" value="no-wrap" onclick="$('td').css('white-space', 'nowrap'); return false;" /></div>
 	<div><strong>Error classes:</strong>
@@ -72,7 +73,6 @@ $(document).ready(init);
 				<th>${tag | h}=</th>
 				% endfor
 				<th>validation errors</th>
-				<th>no <abbr title="route_master">r_m</abbr></th>
 				<th>fixme+FIXME=</th>
 				<th>note=</th>
 			</tr>
@@ -131,11 +131,6 @@ $(document).ready(init);
 					</ul>
 				% endif
 				</td>
-				% if l['noroutemaster']:
-				<td class="center">x</td>
-				% else:
-				<td class="center"></td>
-				% endif
 				<td>${l['fixme'] | h}</td>
 				<td>${l['note'] | h}</td>
 			</tr>

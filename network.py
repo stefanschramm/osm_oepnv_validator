@@ -1,48 +1,21 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-# rn.py - load network of routes from OSM
-#
-# Copyright (C) 2012, Stefan Schramm <mail@stefanschramm.net>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
 import os
 import stat
 import datetime
-
-from mako.lookup import TemplateLookup
-
 import xml.etree.cElementTree as ET
+
+from typing import Type
+
+import context
+
+import profile
 
 class RouteNetwork(object):
 
-  # dummy profile
-  profile = {
-    'name': '',
-    'shortname': '',
-    'filter_text': '',
-    'datasource': '',
-    'stopplan': False,
-    'maps': {}
-  }
-
-  pbf = ""
   mtime = None
   relation_filter = lambda r: True
-  makolookup = TemplateLookup(directories=[os.path.dirname(__file__) + '/templates'])
 
   def __init__(self):
     # the interesting objects will be stored in these 3 dicts:
@@ -64,7 +37,7 @@ class RouteNetwork(object):
     # dict of parent relations; index: id of relation to get parent relations for
     self.parents = {}
 
-  def load_network(self, xml, filterfunction=lambda r: True):
+  def load(self, xml, filterfunction=lambda r: True):
 
     # read data of public transport network
     # required for validating and displaying
@@ -173,3 +146,9 @@ class RouteNetwork(object):
       key += "1"
     return key
 
+
+def create_from_profile(p: Type[profile.PublicTransportProfile]):
+  rn = RouteNetwork()
+  rn.load(xml=context.data_file_path(p), filterfunction=p.filter)
+
+  return rn
