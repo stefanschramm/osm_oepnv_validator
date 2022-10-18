@@ -11,13 +11,13 @@ from mako.template import Template
 
 show_additional_tags = ['ref', 'colour', 'name']
 
-makolookup = TemplateLookup(directories=[context.template_dir])
+makolookup = TemplateLookup(directories=[context.get_template_dir()])
 
 def generate_index(profiles):
     # write template
     tpl = Template(filename='templates/index.tpl', default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace')
     content = tpl.render(profiles=profiles)
-    f = open(context.output_dir + "/index.htm", 'w')
+    f = open(context.custom_output_file_path('index.htm'), 'w')
     f.write(content.decode('utf-8'))
     f.close()
 

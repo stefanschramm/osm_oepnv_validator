@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 import os
-import sys
-from re import I
+import argparse
 
 import context
 import network
@@ -11,23 +10,35 @@ import downloader
 import generators
 
 def main():
-  
-  profiles = profile_repository.get_profiles()
 
-  if len(sys.argv) > 2:
-    print("Usage: %s [profilename]" % sys.argv[0])
-    print("Available profiles:")
-    print("\n".join(map(lambda p: p.name, profiles)))
-    return
-  
-  if len(sys.argv) < 2 or sys.argv[1] == 'index':
-    print('Generating index...')
-    generators.generate_index(profiles)
+  parser = argparse.ArgumentParser(description='Generate OSM relation overviews', allow_abbrev=False, epilog='In case no specific profile is specified, all available profiles including an index will be generated.')
+  parser.add_argument('--profile', help='name of profile to generate (skip to generate all profiles)')
+  parser.add_argument('--data', help='directory to use to store data')
+  parser.add_argument('--output', help='directory to use to store output (overviews/reports)')
+  args = parser.parse_args()
 
-  for p in profiles:
-    if len(sys.argv) == 2 and sys.argv[1] != p.name:
-      continue
+  if args.data != None:
+    context.set_data_dir(args.data)
+  
+  if args.output != None:
+    context.set_output_dir(args.output)
+
+  if args.profile != None:
+    # single profile
+    p = profile_repository.get_profile(args.profile)
+    if p == None:
+      print('Profile %s not found' % args.profile)
+      print("Available profiles:")
+      print("\n".join(profile_repository.get_profile_names()))
+      return
     generate_profile(p)
+  else:
+    # generate all profiles including index
+    print('Generating index...')
+    profiles = profile_repository.get_profiles()
+    generators.generate_index(profiles)
+    for p in profiles:
+      generate_profile(p)
 
 def generate_profile(p):
   print('Generating profile %s...' % p.name)
