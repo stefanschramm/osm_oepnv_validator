@@ -1,10 +1,9 @@
 import re
 
-from typing import Type
 from network import RouteNetwork
-from profile import PublicTransportProfile
+from profiles.base.public_transport import PublicTransportProfile
 
-def relation_colour(p: Type[PublicTransportProfile], n: Type[RouteNetwork], relation):
+def relation_colour(p: PublicTransportProfile, n: RouteNetwork, relation):
   rid, tags, members = relation
 
   if "type" not in tags or tags["type"] not in ["route", "route_master"]:
@@ -25,7 +24,7 @@ def relation_colour(p: Type[PublicTransportProfile], n: Type[RouteNetwork], rela
 class RelationNameRegexp():
   def __init__(self, regexp):
     self.regexp = regexp
-  def __call__(self, p: Type[PublicTransportProfile], n: Type[RouteNetwork], relation):
+  def __call__(self, p: PublicTransportProfile, n: RouteNetwork, relation):
     rid, tags, members = relation
 
     if "type" not in tags or tags["type"] not in ["route", "route_master"]:
@@ -43,7 +42,7 @@ class RelationNameRegexp():
 
     return []
 
-def relation_stops_in_ways(p: Type[PublicTransportProfile], n: Type[RouteNetwork], relation):
+def relation_stops_in_ways(p: PublicTransportProfile, n: RouteNetwork, relation):
   rid, tags, members = relation
   errors = []
   nodes_in_ways = []
@@ -59,7 +58,7 @@ def relation_stops_in_ways(p: Type[PublicTransportProfile], n: Type[RouteNetwork
       errors.append(('stop_outside_way', 'node-member %i has role \'stop\' but is not part of a contained way (might rather be a platform instead)' % mid, mid))
   return set(errors)
 
-def relation_route_basics(p: Type[PublicTransportProfile], n: Type[RouteNetwork], relation):
+def relation_route_basics(p: PublicTransportProfile, n: RouteNetwork, relation):
   rid, tags, members = relation
   errors = []
 
@@ -104,7 +103,7 @@ def relation_route_basics(p: Type[PublicTransportProfile], n: Type[RouteNetwork]
 
   return errors
 
-def relation_route_master_basics(p: Type[PublicTransportProfile], n: Type[RouteNetwork], relation):
+def relation_route_master_basics(p: PublicTransportProfile, n: RouteNetwork, relation):
   rid, tags, members = relation
   errors = []
 
@@ -138,7 +137,7 @@ def relation_route_master_basics(p: Type[PublicTransportProfile], n: Type[RouteN
 
   return errors
 
-def no_route_master(p: Type[PublicTransportProfile], n: Type[RouteNetwork], relation):
+def no_route_master(p: PublicTransportProfile, n: RouteNetwork, relation):
   rid, tags, members = relation
   if not "route" in tags:
     # seems to be route master or something else
@@ -149,17 +148,17 @@ def no_route_master(p: Type[PublicTransportProfile], n: Type[RouteNetwork], rela
   if not ("relation", rid) in n.parents:
     # route without parent => without route_master
     return True
-  for p in n.parents[("relation", rid)]:
-    if p[0] != "relation":
+  for parent in n.parents[("relation", rid)]:
+    if parent[0] != "relation":
       continue
-    parent_id, parent_tags, parent_members = n.relations[p[1]]
+    parent_id, parent_tags, parent_members = n.relations[parent[1]]
     if "ref" in parent_tags and parent_tags["ref"] == tags["ref"] and "type" in parent_tags and parent_tags["type"] == "route_master":
       # has correct route_master (parent with type=route_master and same ref)
       return False
   # no correct parent: missing route_master
   return True
 
-def connectivity(n: Type[RouteNetwork], ways):
+def connectivity(n: RouteNetwork, ways):
   # check if all passed ways are connected
   edges = {}
   nodes = []

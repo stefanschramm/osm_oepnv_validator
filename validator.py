@@ -1,10 +1,9 @@
-from profile import PublicTransportProfile
-from typing import Type
+from profiles.base.public_transport import PublicTransportProfile
 from network import RouteNetwork
 
 class Validator():
 
-  def __init__(self, n: Type[RouteNetwork], p: Type[PublicTransportProfile]):
+  def __init__(self, n: RouteNetwork, p: PublicTransportProfile):
     self.n = n
     self.p = p
 

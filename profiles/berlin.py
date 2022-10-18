@@ -1,10 +1,8 @@
-import profile
 import validation
 import re
 
-from typing import Type
 from network import RouteNetwork
-from profile import PublicTransportProfile
+from profiles.base.public_transport import PublicTransportProfile
 
 def is_normal_bus(r):
   return (("route" in r[1] and r[1]["route"] == "bus") or \
@@ -44,7 +42,7 @@ def is_sbahn(r):
 def is_s_or_u_bahn(r):
   return is_sbahn(r) or is_ubahn(r)
 
-def validate_name(p: Type[PublicTransportProfile], n: Type[RouteNetwork], relation):
+def validate_name(p: PublicTransportProfile, n: RouteNetwork, relation):
   rid, tags, members = relation
 
   if "type" not in tags or tags["type"] not in ["route", "route_master"]:
@@ -70,7 +68,7 @@ def validate_name(p: Type[PublicTransportProfile], n: Type[RouteNetwork], relati
 
   return []
 
-def validate_colour(p: Type[PublicTransportProfile], n: Type[RouteNetwork], relation):
+def validate_colour(p: PublicTransportProfile, n: RouteNetwork, relation):
   rid, tags, members = relation
 
   if "type" not in tags or tags["type"] not in ["route", "route_master"]:
@@ -88,9 +86,12 @@ def validate_colour(p: Type[PublicTransportProfile], n: Type[RouteNetwork], rela
 
   return []
 
-class BerlinOepnvProfile(profile.PublicTransportProfile):
+class BerlinOepnvProfile(PublicTransportProfile):
+
   name = 'berlin_oepnv'
+
   label = 'Berlin: ÖPNV (only BVG and S-Bahn Berlin GmbH)'
+  
   overpass_query = """
     <union>
       <query type="relation">
@@ -105,29 +106,39 @@ class BerlinOepnvProfile(profile.PublicTransportProfile):
     </union>
     <print />
   """
+
   filter_text = 'All route and route_master relations with network=VBB and (operator=BVG or operator=S-Bahn Berlin GmbH)'
-  filter = lambda r: "network" in r[1] \
+
+  @staticmethod
+  def filter(r):
+    return "network" in r[1] \
         and (r[1]["network"] in ["Verkehrsverbund Berlin-Brandenburg", "VBB"]) \
         and "operator" in r[1] \
         and (r[1]["operator"] in ["BVG", "S-Bahn Berlin GmbH", "Berliner Verkehrsbetriebe"]) \
         and "type" in r[1] \
         and r[1]["type"] in ["route", "route_master"]
+
+  @staticmethod
   def ignore_relation(relation):
       rid, tags, members = relation
       # don't try to validate "...linien in Berlin"-relations
       return rid in [18812, 174283, 53181, 174255, 18813]
+
   route_validators = [
     validation.relation_route_basics,
     validation.relation_stops_in_ways,
     validate_colour,
     validate_name,
   ]
+
   route_master_validators = [
     validation.relation_route_master_basics,
     validate_name,
     validate_colour,
   ]
+
   stopplan = True
+
   maps = {
       # 'internal name': ('readable name', filter function)
       'sunetz': ("S+U-Bahn", is_s_or_u_bahn),

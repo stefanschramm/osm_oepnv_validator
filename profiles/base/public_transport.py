@@ -1,4 +1,19 @@
 class PublicTransportProfile():
+  # to be overridden
+  name = ''
+  overpass_query = ''
+  route_master_validators = []
+  route_validators = []
+  maps = {}
+
+  @staticmethod
+  def ignore_relation(relation):
+    return False
+
+  @staticmethod
+  def filter(relation):
+    return True
+
   # pattern for roles of nodes of routes
   # http://wiki.openstreetmap.org/wiki/Relation:route#Members
   route_node_roles_pattern = "^(stop:[0-9]+|stop|forward:stop:[0-9]+|backward:stop:[0-9]+|platform:[0-9]+|platform)$"
@@ -29,6 +44,4 @@ class PublicTransportProfile():
 
   # pattern for roles of ways of routes that need to be connected to each other
   route_connected_way_roles_pattern = "^(|route|forward|backward)$"
-
-  ignore_relation = lambda relation: False
   

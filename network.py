@@ -6,16 +6,14 @@ import stat
 import datetime
 import xml.etree.cElementTree as ET
 
-from typing import Type
-
 import context
 
-import profile
+from profiles.base.public_transport import PublicTransportProfile
 
-class RouteNetwork(object):
+class RouteNetwork():
 
   mtime = None
-  relation_filter = lambda r: True
+  relation_filter = lambda relation: True
 
   def __init__(self):
     # the interesting objects will be stored in these 3 dicts:
@@ -37,7 +35,7 @@ class RouteNetwork(object):
     # dict of parent relations; index: id of relation to get parent relations for
     self.parents = {}
 
-  def load(self, xml, filterfunction=lambda r: True):
+  def load(self, xml, filterfunction=lambda relation: True):
 
     # read data of public transport network
     # required for validating and displaying
@@ -147,7 +145,7 @@ class RouteNetwork(object):
     return key
 
 
-def create_from_profile(p: Type[profile.PublicTransportProfile]):
+def create_from_profile(p: PublicTransportProfile):
   rn = RouteNetwork()
   rn.load(xml=context.data_file_path(p), filterfunction=p.filter)
 

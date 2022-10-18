@@ -3,8 +3,7 @@ import validator
 
 import re
 
-from profile import PublicTransportProfile
-from typing import Type
+from profiles.base.public_transport import PublicTransportProfile
 from network import RouteNetwork
 
 from mako.lookup import TemplateLookup
@@ -22,7 +21,7 @@ def generate_index(profiles):
     f.write(content.decode('utf-8'))
     f.close()
 
-def generate_relation_overview(n: Type[RouteNetwork], p: Type[PublicTransportProfile]):
+def generate_relation_overview(n: RouteNetwork, p: PublicTransportProfile):
     v = validator.Validator(n, p)
 
     lines_tpl = []
@@ -51,7 +50,7 @@ def generate_relation_overview(n: Type[RouteNetwork], p: Type[PublicTransportPro
     f.write(content.decode('utf-8'))
     f.close()
 
-def generate_stop_plan(n: Type[RouteNetwork], p: Type[PublicTransportProfile]):
+def generate_stop_plan(n: RouteNetwork, p: PublicTransportProfile):
   # print list of stations of a route
   # within the directions of a route the stations are identified by their name
   # (which will cause problems in routes like M1 having "U Oranienburger Tor" 2 times)
@@ -175,7 +174,7 @@ def generate_stop_plan(n: Type[RouteNetwork], p: Type[PublicTransportProfile]):
   f.write(content.decode('utf-8'))
   f.close()
 
-def generate_network_map(n: Type[RouteNetwork], p: Type[PublicTransportProfile], mapkey):
+def generate_network_map(n: RouteNetwork, p: PublicTransportProfile, mapkey):
   lines = []
   for relation in n.relations.values():
     rid, tags, members = relation
