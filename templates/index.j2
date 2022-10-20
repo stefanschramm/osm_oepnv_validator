@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>OSM Route Utilities</title>
+	<link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+<body>
+	<h1>OSM Route Tools - Index</h1>
+	<ul>
+  {%- for p in profiles|sort(attribute='name') %}
+		<li><a href="{{ p.name }}.htm">{{ p.label }}</a></li>
+  {%- endfor %}
+	</ul>
+</body>
+</html>

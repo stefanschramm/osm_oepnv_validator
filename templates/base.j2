@@ -1,0 +1,40 @@
+{%- macro relationtools(osmid, ref) -%}
+  <a rel="nofollow" href="http://api.openstreetmap.org/api/0.6/relation/{{ osmid }}" title="XML">x</a>
+  <a rel="nofollow" href="http://ra.osmsurround.org/analyzeRelation?relationId={{ osmid }}" title="OSM Relation Analyzer">a</a>
+  <a rel="nofollow" href="http://osmrm.openstreetmap.de/relation.jsp?id={{ osmid }}" title="OSM Route Manager">r</a>
+  <a rel="nofollow" href="http://localhost:8111/import?url=http://api.openstreetmap.org/api/0.6/relation/{{ osmid }}/full" title="JOSM">j</a>
+  <a rel="nofollow" href="http://osm.virtuelle-loipe.de/history/?type=relation&amp;ref={{ osmid }}" title="OSM History Browser">h</a>
+  <a rel="nofollow" href="http://www.openstreetmap.org/?relation={{ osmid }}" title="view">v</a>
+  {% if ref != None and ref != "" %}
+    {# TODO: Fix link #}
+    <a rel="nofollow" href="http://www.overpass-api.de/api/sketch-line?ref={{ ref }}&amp;network=VBB&amp;style=wuppertal" title="Sketch Line">s</a>
+  {% endif %}
+  <a rel="nofollow" href="http://osmrm.openstreetmap.de/gpx.jsp?relation={{ osmid }}" title="GPX">g</a>
+  <a rel="nofollow" href="http://osm.kesto.de/rnc/?r={{ osmid }}&amp;p={{ '/^(stop:[0-9]+|stop|forward:stop:[0-9]+|backward:stop:[0-9]+|platform:[0-9]+|platform)$/' }}" title="Relation's Node Connector">n</a>
+{%- endmacro -%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>OSM Route Tools - {{ self.title() }}</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel="stylesheet" type="text/css" href="style.css" />
+  {% block head %}{% endblock %}
+</head>
+<body>
+	<div class="indexlink"><a href="index.htm">index</a></div>
+	<h1>{{ profile.label }}</h1>
+	<div class="menu menu-{{ page }}">
+		<a href="{{ profile.name }}.htm" class="menuentry">Relations</a>
+		{%- if profile.stopplan %}
+			<a href="{{ profile.name }}_lines.htm" class="menuentry">Routes with stops</a>
+		{%- endif %}
+		{%- for map in profile.maps %}
+			<a href="{{ profile.name }}_map_{{ map }}.htm" class="menuentry">Map: {{ profile.maps[map][0] }}</a>
+		{%- endfor %}
+	</div>
+	<h2>{% block title %}{% endblock %}</h2>
+	{% block content %}{% endblock %}
+	<p><a href="http://www.openstreetmap.org/copyright">Data © OpenStreetMap contributors, ODBL; Map Tiles © OpenStreetMap, CC-BY-SA</a></p>
+	<p>The source code of these validation scripts is available under GPL at <a href="https://github.com/stefanschramm/osm_oepnv_validator">https://github.com/stefanschramm/osm_oepnv_validator</a>.</p>
+</body>
+</html>

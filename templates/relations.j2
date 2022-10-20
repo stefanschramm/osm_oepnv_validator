@@ -1,0 +1,99 @@
+{% extends 'base.j2' %}
+
+{% block head %}
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+<script type="text/javascript">
+
+function checkCheckbox(checkbox) {
+	var errors = $('.' + checkbox.getAttribute("name"));
+	if (checkbox.checked) {
+		errors.show()
+	}
+	else {
+		errors.hide()
+	}
+}
+function init() {
+	$('input').show();
+	$('input.checkbox').each(function(index, checkbox) {
+		checkCheckbox(checkbox);
+	});
+}
+
+$(document).ready(init);
+
+</script>
+{% endblock %}
+
+{%- block title -%}
+  Relations
+{%- endblock -%}
+
+{% block content %}
+  <p>For relations which contain members outside of the data source no connectivity validation is done and member counts might be wrong.</p>
+	<p><strong>Last update:</strong> {{ mtime }}</p>
+	<div><strong>Format:</strong> <input type="submit" value="no-wrap" onclick="$('td').css('white-space', 'nowrap'); return false;" /></div>
+	<div><strong>Error classes:</strong>
+	{% for ec in error_classes %}
+		<input class="checkbox" type="checkbox" name="{{ ec }}" value="1" checked="checked" onchange="return checkCheckbox(this);" />{{ ec }} ({{ error_classes[ec] }})
+	{% endfor %}
+	<table>
+		<thead>
+			<tr>
+				<th class="right">id</th>
+				<th>tools</th>
+				<th>type=</th>
+				<th><abbr title="route_master=">r_m=</abbr></th>
+				<th class="right"><abbr title="number of members of type 'relation'">#R</abbr></th>
+				<th>route=</th>
+				<th class="right"><abbr title="number of members of type 'way'">#W</abbr></th>
+				<th class="right"><abbr title="number of members of type 'node'">#N</abbr></th>
+				{%- for tag in additional_tags %}
+				<th>{{ tag }}</th>
+				{%- endfor %}
+				<th>validation errors</th>
+				<th>fixme+FIXME=</th>
+				<th>note=</th>
+			</tr>
+		</thead>
+		<tbody>
+      {% for l in lines %}
+        <tr id="relation-{{ l['osmid'] }}">
+          <td class="right"><a href="http://www.openstreetmap.org/browse/relation/{{ l['osmid'] }}">{{ l['osmid'] }}</a></td>
+          <td class="nowrap">
+            {{ relationtools(l['osmid'], l['ref']) }}
+          </td>
+          <td>{{ l['type'] }}</td>
+          <td>{{ l['route_master'] }}</td>
+          <td class="right">{{ l['relations'] }}</td>
+          <td>{{ l['route'] }}</td>
+          <td class="right">{{ l['ways'] }}</td>
+          <td class="right">{{ l['nodes'] }}</td>
+          {% for tag in additional_tags %}
+            {% if tag in ['color', 'colour', 'text_color', 'text_colour'] %}
+              <td>{{ l[tag]|colorize|safe }}</td>
+            {% else %}
+              <td>{{ l[tag] }}</td>
+            {% endif %}
+          {% endfor %}
+          <td>
+          {% if l['errors']|length > 0 %}
+            <ul>
+            {% for e in l['errors'] %}
+              <li class="{{ e[0] }}">
+                <abbr title="{{ e[1] }}">{{ e[0] }}</abbr>
+                {% if e[0] == 'stop_outside_way' %}
+                  <a href="http://www.openstreetmap.org/browse/node/{{ e[2] }}">{{ e[2] }}</a> {# TODO: Notetools #}
+                {% endif %}
+              </li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+          </td>
+          <td>{{ l['fixme'] }}</td>
+          <td>{{ l['note'] }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+    </table>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'base.j2' %}
+
+{%- block title -%}
+  Routes
+{%- endblock -%}
+
+{% block content %}
+	<p><strong>Lines:</strong>
+	{%- for l in lines %}
+		<a href="#relation-{{ l['id'] }}">{{ l['ref'] }}</a>
+	{%- endfor %}
+	</p>
+	{%- for l in lines %}
+		<div>
+			<h2 id="relation-{{ l['id'] }}">{{ l['name'] }}, ref={{ l['ref'] }} (<a href="http://www.openstreetmap.org/browse/relation/{{ l['id'] }}">{{ l['id'] }}</a> <small>{{ relationtools(l['id'], l['ref']) }} <a href="{{ profile.name }}}.htm#relation-{{ l['id'] }}" title="Relation List">rl</a></small>)</h2>
+			{%- for v in l['variations'] %}
+				<div>
+          <h3>
+            {{ v['from'] }} &lt;=&gt; {{ v['to'] }}
+            (<a href="http://www.openstreetmap.org/browse/relation/{{ v['ids'][0] }}">{{ v['ids'][0] }}</a>
+            <small>{{ relationtools(v['ids'][0], l['ref']) }} <a href="{{ profile.name }}.htm#relation-{{ v['ids'][0] }}" title="Relation List">rl</a></small>,
+            <a href="http://www.openstreetmap.org/browse/relation/{{ v['ids'][1] }}">{{ v['ids'][1] }}</a>
+            <small>{{ relationtools(v['ids'][1], l['ref']) }} <a href="{{ profile.name }}.htm#relation-{{ v['ids'][1] }}" title="Relation List">rl</a></small>)
+          </h3>
+				<table>
+				{%- for s in v['stops'] %}
+					<tr>
+						<td>{{ s[0] }}</td>
+						<td>{{ s[1] }}</td>
+						<td>{{ ",".join(s[2]) }}</td>
+					</tr>
+				{%- endfor %}
+				</table>
+				</div>
+			{%- endfor %}
+		</div>
+	{%- endfor %}
+{% endblock %}

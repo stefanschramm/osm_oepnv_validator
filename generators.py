@@ -1,29 +1,19 @@
 import context
 import validator
-
 import re
-
+import rendering
 from profiles.base.public_transport import PublicTransportProfile
 from network import RouteNetwork
 
-from mako.lookup import TemplateLookup
-from mako.template import Template
-
 show_additional_tags = ['ref', 'colour', 'name']
 
-makolookup = TemplateLookup(directories=[context.get_template_dir()])
-
 def generate_index(profiles):
-    # write template
-    tpl = Template(filename='templates/index.tpl', default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace')
-    content = tpl.render(profiles=profiles)
-    f = open(context.custom_output_file_path('index.htm'), 'w')
-    f.write(content.decode('utf-8'))
-    f.close()
+    rendering.render('index.j2', context.custom_output_file_path('index.htm'), profiles=profiles)
 
 def generate_relation_overview(n: RouteNetwork, p: PublicTransportProfile):
     v = validator.Validator(n, p)
 
+    error_classes = {}
     lines_tpl = []
     for relation in sorted(n.relations.values(), key=get_sortkey):
       rid, tags, members = relation
@@ -37,18 +27,18 @@ def generate_relation_overview(n: RouteNetwork, p: PublicTransportProfile):
       if "FIXME" in tags:
         l["fixme"] += tags["FIXME"]
       l['errors'] = v.validate_relation(relation)
+      for e in l["errors"]:
+        if e[0] not in error_classes:
+          error_classes[e[0]] = 1
+        else:
+          error_classes[e[0]] += 1
       members = count_member_types(relation)
       l['relations'] = members['relation']
       l['ways'] = members['way']
       l['nodes'] = members['node']
       lines_tpl.append(l)
 
-    # write template
-    tpl = Template(filename='templates/relations.tpl', default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace', lookup=makolookup)
-    content = tpl.render(lines=lines_tpl, mtime=n.mtime, profile=p, additional_tags=show_additional_tags)
-    f = open(context.output_file_path(p), 'w')
-    f.write(content.decode('utf-8'))
-    f.close()
+    rendering.render('relations.j2', context.output_file_path(p), lines=lines_tpl, mtime=n.mtime, profile=p, additional_tags=show_additional_tags, error_classes=error_classes)
 
 def generate_stop_plan(n: RouteNetwork, p: PublicTransportProfile):
   # print list of stations of a route
@@ -167,12 +157,7 @@ def generate_stop_plan(n: RouteNetwork, p: PublicTransportProfile):
       'variations': variations
     })
 
-  # write template
-  tpl = Template(filename='templates/routes.tpl', default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace', lookup=makolookup)
-  content = tpl.render(lines=lines, mtime=n.mtime, profile=p)
-  f = open(context.output_file_path(p, '_lines'), 'w')
-  f.write(content.decode('utf-8'))
-  f.close()
+  rendering.render('routes.j2', context.output_file_path(p, '_lines'), lines=lines, mtime=n.mtime, profile=p)
 
 def generate_network_map(n: RouteNetwork, p: PublicTransportProfile, mapkey):
   lines = []
@@ -194,12 +179,7 @@ def generate_network_map(n: RouteNetwork, p: PublicTransportProfile, mapkey):
       stations.append(n.nodes[mid])
     lines.append([rid, tags, stations])
 
-  # write template
-  tpl = Template(filename='templates/map.tpl', default_filters=['decode.utf8'], input_encoding='utf-8', output_encoding='utf-8', encoding_errors='replace', lookup=makolookup)
-  content = tpl.render(lines=lines, mtime=n.mtime, profile=p, mapkey=mapkey)
-  f = open(context.output_file_path(p, '_map_' + mapkey), 'w')
-  f.write(content.decode('utf-8'))
-  f.close()
+  rendering.render('map.j2', context.output_file_path(p, '_map_' + mapkey), lines=lines, mtime=n.mtime, profile=p, mapkey=mapkey)
 
 def count_member_types(relation):
   # count how many members of each type the relation has
