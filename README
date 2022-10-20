@@ -3,12 +3,10 @@ Tools for validating OSM public transport relations
 Used by https://osm.kesto.de/routes/
 
 Install required Python modules:
-apt install python3-mako python3-simplejson
-
-Fetch data from Overpass-API:
-./fetch_overpass_data.py overpass_queries/ data/
-
-Adjust output_dir in osmconfig.py to your needs.
+apt install python3-jinja2 python3-simplejson
 
 Start overview generation script with profile "berlin_oepnv":
-./generate.py berlin_oepnv
+./generate.py --profile berlin_oepnv
+
+Help:
+./generate.py --help
