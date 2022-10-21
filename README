@@ -3,7 +3,7 @@ Tools for validating OSM public transport relations
 Used by https://osm.kesto.de/routes/
 
 Install required Python modules:
-apt install python3-jinja2 python3-simplejson
+apt install python3-jinja2
 
 Start overview generation script with profile "berlin_oepnv":
 ./generate.py --profile berlin_oepnv
