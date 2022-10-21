@@ -25,9 +25,6 @@ a {
 a:active {
 	color: #000;
 }
-input {
-	display: none;
-}
 .right {
 	text-align: right;
 }

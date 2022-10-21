@@ -1,23 +1,28 @@
 {% extends 'base.j2' %}
 
 {% block head %}
-<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
-<script type="text/javascript">
+<script src="https://code.jquery.com/jquery-3.6.1.slim.min.js" integrity="sha256-w8CvhFs7iHNVUtnSP0YKEg00p9Ih13rlL9zGqvLdePA=" crossorigin="anonymous"></script>
+<script>
 
-function checkCheckbox(checkbox) {
-	var errors = $('.' + checkbox.getAttribute("name"));
-	if (checkbox.checked) {
-		errors.show()
-	}
-	else {
-		errors.hide()
-	}
-}
 function init() {
-	$('input').show();
-	$('input.checkbox').each(function(index, checkbox) {
-		checkCheckbox(checkbox);
-	});
+
+  // disable word-wrap
+  $('#no-wrap').click(function(ev) {
+    $('td').css('white-space', 'nowrap');
+    $('#formatting').hide();
+  });
+
+  $('input.checkbox').change(function(ev) {
+    var errorClass = ev.target.name;
+    var errors = $('.error-' + errorClass);
+    if (ev.target.checked) {
+      errors.show();
+    }
+    else {
+      errors.hide();
+    }
+  });
+
 }
 
 $(document).ready(init);
@@ -30,13 +35,13 @@ $(document).ready(init);
 {%- endblock -%}
 
 {% block content %}
-  <p>For relations which contain members outside of the data source no connectivity validation is done and member counts might be wrong.</p>
 	<p><strong>Last update:</strong> {{ mtime }}</p>
-	<div><strong>Format:</strong> <input type="submit" value="no-wrap" onclick="$('td').css('white-space', 'nowrap'); return false;" /></div>
+	<div id="formatting"><strong>Format:</strong> <input id="no-wrap" type="submit" value="no-wrap"></div>
 	<div><strong>Error classes:</strong>
 	{% for ec in error_classes %}
-		<input class="checkbox" type="checkbox" name="{{ ec }}" value="1" checked="checked" onchange="return checkCheckbox(this);" />{{ ec }} ({{ error_classes[ec] }})
+		<input class="checkbox" type="checkbox" name="{{ ec }}" id="error-checkbox-{{ ec }}" value="1" checked="checked"><label for="error-checkbox-{{ ec }}">{{ ec }} ({{ error_classes[ec] }})</label>
 	{% endfor %}
+  </div>
 	<table>
 		<thead>
 			<tr>
@@ -80,7 +85,7 @@ $(document).ready(init);
           {% if l['errors']|length > 0 %}
             <ul>
             {% for e in l['errors'] %}
-              <li class="{{ e[0] }}">
+              <li class="error-{{ e[0] }}">
                 <abbr title="{{ e[1] }}">{{ e[0] }}</abbr>
                 {% if e[0] == 'stop_outside_way' %}
                   <a href="http://www.openstreetmap.org/browse/node/{{ e[2] }}">{{ e[2] }}</a> {# TODO: Notetools #}
