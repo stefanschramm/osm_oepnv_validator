@@ -1,14 +1,18 @@
-import profiles.braunschweig
-import profiles.halle
 import profiles.berlin
+import profiles.braunschweig
+import profiles.dresden
+import profiles.halle
+import profiles.leipzig
 
 _profile_map = {}
 
 profiles = [
+  profiles.berlin.BerlinOepnvProfile,
   profiles.braunschweig.BraunschweigOepnvProfile,
   profiles.braunschweig.BraunschweigVrbProfile,
+  profiles.dresden.DresdenProfile,
   profiles.halle.HalleProfile,
-  profiles.berlin.BerlinOepnvProfile,
+  profiles.leipzig.LeipzigProfile,
 ]
 
 def _register_profiles(profiles):
