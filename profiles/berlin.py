@@ -35,8 +35,8 @@ def is_ubahn(r):
       ("ref" in r[1] and re.match("^U[0-9]+$", r[1]["ref"]))
 
 def is_sbahn(r):
-  return (("route" in r[1] and r[1]["route"] == "light_rail") or \
-      ("route_master" in r[1] and r[1]["route_master"] == "light_rail")) and \
+  return (("route" in r[1] and r[1]["route"] == "train") or \
+      ("route_master" in r[1] and r[1]["route_master"] == "train")) and \
       ("ref" in r[1] and re.match("^S[0-9]+$", r[1]["ref"]))
 
 def is_s_or_u_bahn(r):
