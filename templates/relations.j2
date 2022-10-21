@@ -88,7 +88,7 @@ $(document).ready(init);
               <li class="error-{{ e[0] }}">
                 <abbr title="{{ e[1] }}">{{ e[0] }}</abbr>
                 {% if e[0] == 'stop_outside_way' %}
-                  <a href="http://www.openstreetmap.org/browse/node/{{ e[2] }}">{{ e[2] }}</a> {# TODO: Notetools #}
+                  <a href="http://www.openstreetmap.org/browse/node/{{ e[2] }}">{{ e[2] }}</a> {{ nodetools(e[2]) }}
                 {% endif %}
               </li>
             {% endfor %}
