@@ -15,12 +15,12 @@ class LeipzigProfile(PublicTransportProfile):
       <query type="relation">
         <has-kv k="type" v="route_master"/>
         <has-kv k="operator" v="LVB"/>
-        <has-kv k="network" v="MDV"/>
+        <has-kv k="network" v="Mitteldeutscher Verkehrsverbund"/>
       </query>
       <query type="relation">
         <has-kv k="type" v="route"/>
         <has-kv k="operator" v="LVB"/>
-        <has-kv k="network" v="MDV"/>
+        <has-kv k="network" v="Mitteldeutscher Verkehrsverbund"/>
       </query>
       <recurse type="down"/>
     </union>
@@ -33,7 +33,7 @@ class LeipzigProfile(PublicTransportProfile):
   def filter(r):
     return \
         "operator" in r[1] and (r[1]["operator"] == "LVB") and \
-        "network" in r[1] and (r[1]["network"] == "MDV") and \
+        "network" in r[1] and (r[1]["network"] == "Mitteldeutscher Verkehrsverbund") and \
         "type" in r[1] and r[1]["type"] in ["route", "route_master"]
 
   route_validators = [
