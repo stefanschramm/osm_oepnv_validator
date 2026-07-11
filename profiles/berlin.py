@@ -63,8 +63,8 @@ def validate_name(p: PublicTransportProfile, n: RouteNetwork, relation):
       return [("wrong_name", u'name does not match convention ("Tram ...")')]
   if tags[key] == "subway" and not re.match(u"^U[0-9]+: ", tags["name"]):
       return [("wrong_name", u'name does not match convention ("Un: ...")')]
-  if tags[key] == "light_rail" and not re.match(u"^S-Bahnlinie ", tags["name"]):
-      return [("wrong_name", u'name does not match convention ("U-Bahnlinie ...")')]
+  if tags[key] == "light_rail" and not re.match(u"^S[0-9]+: ", tags["name"]):
+      return [("wrong_name", u'name does not match convention ("Sn: ...")')]
 
   return []
 
