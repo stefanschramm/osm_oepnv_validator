@@ -14,10 +14,6 @@ class PublicTransportProfile():
   def filter(relation):
     return True
 
-  # pattern for roles of nodes of routes
-  # http://wiki.openstreetmap.org/wiki/Relation:route#Members
-  route_node_roles_pattern = "^(stop:[0-9]+|stop|forward:stop:[0-9]+|backward:stop:[0-9]+|platform:[0-9]+|platform)$"
-
   # all valid keys for a relation (both, route or route_master)
   valid_keys = ["name", "network", "operator", "ref", "route_master", "route", "type", "from", "to", "via", "by_night", "wheelchair", "bus", "direction", "note", "fixme", "FIXME", "color", "colour", "service_times", "description", "wikipedia"]
 

@@ -2,6 +2,7 @@ import profiles.berlin
 import profiles.braunschweig
 import profiles.dresden
 import profiles.halle
+import profiles.hamburg
 import profiles.leipzig
 
 _profile_map = {}
@@ -12,6 +13,7 @@ profiles = [
   profiles.braunschweig.BraunschweigVrbProfile,
   profiles.dresden.DresdenProfile,
   profiles.halle.HalleProfile,
+  profiles.hamburg.HamburgProfile,
   profiles.leipzig.LeipzigProfile,
 ]
 

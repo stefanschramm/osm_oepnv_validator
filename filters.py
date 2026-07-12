@@ -5,3 +5,7 @@ def is_bus(r):
 def is_tram(r):
   return (("route" in r[1] and r[1]["route"] == "tram") or \
       ("route_master" in r[1] and r[1]["route_master"] == "tram"))
+
+def is_ferry(r):
+  return (("route" in r[1] and r[1]["route"] == "ferry") or \
+      ("route_master" in r[1] and r[1]["route_master"] == "ferry"))
